@@ -41,6 +41,7 @@ def imshow(img, text=None, should_save=False):
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show(block=False)
 
+
 def show_plot(iteration, loss):
     plt.plot(iteration, loss)
     plt.show(block=False)
@@ -220,7 +221,9 @@ def train_siamese(net):
                                   shuffle=True,
                                   num_workers=1,
                                   batch_size=SiameseConfig.train_batch_size)
-    net = net.cuda()
+    if torch.cuda.is_available():
+        net = net.cuda()
+
     criterion = ContrastiveLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.0005)
 
@@ -231,7 +234,11 @@ def train_siamese(net):
     for epoch in range(0, SiameseConfig.train_number_epochs):
         for i, data in enumerate(train_dataloader, 0):
             img0, img1, label = data
-            img0, img1, label = Variable(img0).cuda(), Variable(img1).cuda(), Variable(label).cuda()
+            if torch.cuda.is_available():
+                img0, img1, label = Variable(img0).cuda(), Variable(img1).cuda(), Variable(label).cuda()
+            else:
+                img0, img1, label = Variable(img0), Variable(img1), Variable(label)
+
             output1, output2 = net(img0, img1)
             optimizer.zero_grad()
             loss_contrastive = criterion(output1, output2, label)
@@ -257,12 +264,17 @@ def test_siamese(net):
     test_dataloader = DataLoader(siamese_dataset, num_workers=1, batch_size=1, shuffle=True)
     dataiter = iter(test_dataloader)
     x0, _, _ = next(dataiter)
-    net = net.cuda()
+    if torch.cuda.is_available():
+        net = net.cuda()
     for i in range(10):
         _, x1, label2 = next(dataiter)
         concatenated = torch.cat((x0, x1), 0)
 
-        output1, output2 = net(Variable(x0).cuda(), Variable(x1).cuda())
+        if torch.cuda.is_available():
+            output1, output2 = net(Variable(x0).cuda(), Variable(x1).cuda())
+        else:
+            output1, output2 = net(Variable(x0), Variable(x1))
+
         print(output1, output2)
         euclidean_distance = F.pairwise_distance(output1, output2)
         print(euclidean_distance)
