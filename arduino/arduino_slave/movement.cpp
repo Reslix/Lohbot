@@ -48,5 +48,10 @@ void Movement::forward(int speed){
 
         analogWrite(right_pwm, speed);
         analogWrite(left_pwm, speed);
+    }
+}
+
+void Movement::stop(){
+  Movement::forward(0);
 }
 
