@@ -1,0 +1,15 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+*.elf
+*.bin
+*.hex
+*.lc
+*.ll
+*.o
+*.list
+
+#IDES REEEEEEEEEE
+.idea
+
+#stupid directories they give us
+__MACOSX/
+_DS_STORE/
