@@ -15,8 +15,8 @@ void Movement::turn(int dir){
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
 
-        analogWrite(right_pwm, 128);
-        analogWrite(left_pwm, 128);
+        analogWrite(right_pwm, 32);
+        analogWrite(left_pwm, 48);
     }else{
         digitalWrite(left_forward, HIGH);
         digitalWrite(left_backward, LOW);
@@ -24,8 +24,8 @@ void Movement::turn(int dir){
         digitalWrite(right_forward, LOW);
         digitalWrite(right_backward, HIGH);
 
-        analogWrite(right_pwm, 128);
-        analogWrite(left_pwm, 128);
+        analogWrite(right_pwm, 48);
+        analogWrite(left_pwm, 32);
     }   
 }
 
@@ -48,5 +48,10 @@ void Movement::forward(int speed){
 
         analogWrite(right_pwm, speed);
         analogWrite(left_pwm, speed);
+    }
+}
+
+void Movement::stop(){
+  Movement::forward(0);
 }
 

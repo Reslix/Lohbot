@@ -3,41 +3,65 @@
  * 
  */
 
+#include "movement.hpp"
+#include "ping_wrapper.hpp"
 
-//Pins
-const int left_forward = 10;
-const int left_backward = 11;
-const int left_pwm = 5;
+Movement move;
+PingPing ping;
 
-const int right_forward = 8;
-const int right_backward = 9;
-const int right_pwm = 3;
-
+int MIN_DIST = 25;
+int SPEED = 32;
+int sample = 100;
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(left_forward, OUTPUT);
-  pinMode(left_backward, OUTPUT);
-  pinMode(right_forward, OUTPUT);
-  pinMode(right_backward, OUTPUT);
+  Serial.begin(9600);
 
 }
 
+int decide_direction(int left, int mid, int right){
+    if(mid <= MIN_DIST || left <= MIN_DIST || right <= MIN_DIST){
+        if(mid > left && mid > right && mid > MIN_DIST){
+            return -1;
+        }
+        if(left < right){
+            return 1;
+        }
+        if(right < left){
+            return 0;
+        }
+    }
+    return -1;
+}
+
 void loop() {
-  // put your main code here, to run repeatedly:
-  digitalWrite(left_forward, LOW);
-  digitalWrite(left_backward, HIGH);
+    // put your main code here, to run repeatedly:
+    delay(sample);
+    int * distances = ping3();
+    int left_dist = distances[0];
+    int right_dist = distances[2];
+    int mid_dist = distances[1];
 
-  digitalWrite(right_forward, LOW);
-  digitalWrite(right_backward, HIGH);
+    int dir = decide_direction(left_dist, mid_dist, right_dist);
 
+    if(dir != -1){
+        move.forward(0);
+        if(dir == 0){
+            move.turn(1);
+        }else{
+            move.turn(0);
+        }
+    }else{
+        move.forward(SPEED);
+    }
+}
 
-  for(int i = 0; i < 255; i++){
-    analogWrite(left_pwm, i);
-    analogWrite(right_pwm, i);
+int * ping3(){
+    int distances[3];
 
-    delay(250);
-  }
-  
+    distances[0] = ping.distance_left();
+    distances[1] = ping.distance_middle();
+    distances[2] = ping.distance_right();
 
+    return distances;
 }

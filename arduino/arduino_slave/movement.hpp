@@ -21,8 +21,9 @@ class Movement{
     public: 
         void turn(int);
         void forward(int);
+        void stop(void);
 
-        enum turn_dir = {Left, Right};
+        enum turn_dir {Left, Right};
         
         Movement(){
             left_forward = 8;
@@ -34,19 +35,28 @@ class Movement{
             right_backward = 11;
             right_pwm = 5;
             right_dir = 1;
+
+            pinMode(left_forward, OUTPUT);
+            pinMode(left_backward, OUTPUT);
+            pinMode(left_pwm, OUTPUT);
+
+            
+            pinMode(right_forward, OUTPUT);
+            pinMode(right_backward, OUTPUT);
+            pinMode(right_pwm, OUTPUT);
+            
         }
 
-        Movement(int lf, int lb, int lp, int ld,
-                 int rf, int rb, int rp, int rd){
+        Movement(int lf, int lb, int lp,
+                 int rf, int rb, int rp){
             left_forward = lf;
             left_backward = lb;
             left_pwm = lp;
-            left_dir = ld;
 
             right_forward = rf;
             right_backward = rb;
             right_pwm = rp;
-            right_dir = rd;
         }
+};
 
 #endif
