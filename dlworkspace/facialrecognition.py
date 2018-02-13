@@ -7,14 +7,43 @@ We will likely be using FaceNet, which is a siamese neural network that can iden
 Multiple images are still required for training, but we can simultaneously classify persons whose identities we are
 certain of as well as prepare training data. (probably remotely)
 
+credit for the neural network goes to gttps://github.com/harveyslash
+
 """
-from torch.nn import Sequential
-import torch
-import numpy as np
+
+import random
+import time
+
+import PIL
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision
+import torchvision.datasets as dset
+import torchvision.transforms as transforms
+from PIL import Image
+from torch.autograd import Variable
+from torch.utils.data import DataLoader, Dataset
 
 face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
+
+
+def imshow(img, text=None, should_save=False):
+    npimg = img.numpy()
+    plt.axis("off")
+    if text:
+        plt.text(75, 8, text, style='italic', fontweight='bold',
+                 bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 10})
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show(block=False)
+
+def show_plot(iteration, loss):
+    plt.plot(iteration, loss)
+    plt.show(block=False)
 
 
 class Face(object):
@@ -55,26 +84,25 @@ class Faces(object):
         for (x, y, w, h) in faces:
             cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 1)
 
+        return image
+
     def track_faces(self):
         """
-        After detecting the faces in a current frame, we need to match them with existing faces or add them to the
-        database.
+        After detecting the faces in a frame, we need to match them with existing faces or add them to the
+        database. As this is resource intensive we don't run this real time.
         :return:
         """
-        pass
 
 
-class FaceNet(object):
-    """
-    Inspired by FaceNet, we implement a scale-invariant siamese deep network used to
-    """
+# From here on I lifted the entire thing because I couldn't bother with coming up something original
 
-    def forward(self, model, batch):
-        out = model(batch)
-        return out
-
-    def load_model(self):
-        pass
+class SiameseConfig():
+    training_dir = "./data/siamesetraining/"
+    testing_dir = "./data/siamesetesting/"
+    model_path = "./models/siamese.torch"
+    train_batch_size = 64
+    train_number_epochs = 100
+    imsize = 96
 
 
 class ContrastiveLoss(torch.nn.Module):
@@ -96,40 +124,159 @@ class ContrastiveLoss(torch.nn.Module):
         return loss_contrastive
 
 
-def train_model(name="facemodel"):
-    # Neural network that takes 96*96 sized images as input
-    m = Sequential(
-        nn.ReflectionPad2d(1),
-        torch.nn.Conv2d(1, 8, kernel_size=3),
-        nn.Dropout2d(p=.2),
-        nn.ReflectionPad2d(1),
-        nn.Conv2d(8, 8, kernel_size=3),
-        nn.ReLU(inplace=True),
-        nn.BatchNorm2d(8),
-        nn.Dropout2d(p=.2),
-        nn.ReflectionPad2d(1),
-        nn.Conv2d(8, 8, kernel_size=3),
-        nn.ReLU(inplace=True),
-        nn.BatchNorm2d(8),
-        nn.Dropout2d(p=.2),
-        nn.ReflectionPad2d(1),
-        nn.Conv2d(8, 4, kernel_size=3),
-        nn.ReflectionPad2d(1),
-        nn.BatchNorm2d(8),
-        nn.Dropout2d(p=.2),
-        nn.ReflectionPad2d(1),
-        nn.Conv2d(4, 4, kernel_size=3),
-        nn.BatchNorm2d(8),
-        nn.Dropout2d(p=.2),
-        nn.ReflectionPad2d(1),
-        nn.Conv2d(4, 1, kernel_size=3),
-        nn.Linear(96 * 96, 64),
-        nn.ReLU(inplace=True),
-        nn.Linear(64, 8)
-    )
+class SiameseNetworkDataset(Dataset):
+    def __init__(self, imageFolderDataset, transform=None, should_invert=True):
+        self.imageFolderDataset = imageFolderDataset
+        self.transform = transform
+        self.should_invert = should_invert
 
-    def load_data():
-        pass
+    def __getitem__(self, index):
+        img0_tuple = random.choice(self.imageFolderDataset.imgs)
+        # we need to make sure approx 50% of images are in the same class
+        should_get_same_class = random.randint(0, 1)
+        if should_get_same_class:
+            while True:
+                # keep looping till the same class image is found
+                img1_tuple = random.choice(self.imageFolderDataset.imgs)
+                if img0_tuple[1] == img1_tuple[1]:
+                    break
+        else:
+            img1_tuple = random.choice(self.imageFolderDataset.imgs)
 
-    def process_raw_data():
-        pass
+        img0 = Image.open(img0_tuple[0])
+        img1 = Image.open(img1_tuple[0])
+        img0 = img0.convert("L")
+        img1 = img1.convert("L")
+
+        if self.should_invert:
+            img0 = PIL.ImageOps.invert(img0)
+            img1 = PIL.ImageOps.invert(img1)
+
+        if self.transform is not None:
+            img0 = self.transform(img0)
+            img1 = self.transform(img1)
+
+        return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32))
+
+    def __len__(self):
+        return len(self.imageFolderDataset.imgs)
+
+
+class SiameseNetwork(nn.Module):
+    def __init__(self):
+        super(SiameseNetwork, self).__init__()
+        self.cnn1 = nn.Sequential(
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(1, 16, kernel_size=3),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(16),
+            nn.Dropout2d(p=.2),
+
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(16, 8, kernel_size=3),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(8),
+            nn.Dropout2d(p=.2),
+
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(8, 8, kernel_size=3),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(8),
+            nn.Dropout2d(p=.2),
+        )
+
+        self.fc1 = nn.Sequential(
+            nn.Linear(8 * SiameseConfig.imsize * SiameseConfig.imsize, 256),
+            nn.ReLU(inplace=True),
+
+            nn.Linear(256, 256),
+            nn.ReLU(inplace=True),
+
+            nn.Linear(256, 8)
+        )
+
+    def forward_once(self, x):
+        output = self.cnn1(x)
+        output = output.view(output.size()[0], -1)
+        output = self.fc1(output)
+        return output
+
+    def forward(self, input1, input2):
+        output1 = self.forward_once(input1)
+        output2 = self.forward_once(input2)
+        return output1, output2
+
+
+def train_siamese(net):
+    folder_dataset = dset.ImageFolder(root=SiameseConfig.training_dir)
+    siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset,
+                                            transform=transforms.Compose(
+                                                [transforms.Resize((SiameseConfig.imsize, SiameseConfig.imsize)),
+                                                 transforms.RandomHorizontalFlip(),
+                                                 transforms.ToTensor()
+                                                 ])
+                                            , should_invert=False)
+    train_dataloader = DataLoader(siamese_dataset,
+                                  shuffle=True,
+                                  num_workers=1,
+                                  batch_size=SiameseConfig.train_batch_size)
+    net = net.cuda()
+    criterion = ContrastiveLoss()
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.0005)
+
+    counter = []
+    loss_history = []
+    iteration_number = 0
+
+    for epoch in range(0, SiameseConfig.train_number_epochs):
+        for i, data in enumerate(train_dataloader, 0):
+            img0, img1, label = data
+            img0, img1, label = Variable(img0).cuda(), Variable(img1).cuda(), Variable(label).cuda()
+            output1, output2 = net(img0, img1)
+            optimizer.zero_grad()
+            loss_contrastive = criterion(output1, output2, label)
+            loss_contrastive.backward()
+            optimizer.step()
+            if i % 10 == 0:
+                print("Epoch number {}\n Current loss {}\n".format(epoch, loss_contrastive.data[0]))
+                iteration_number += 10
+                counter.append(iteration_number)
+                loss_history.append(loss_contrastive.data[0])
+    show_plot(counter, loss_history)
+
+
+def test_siamese(net):
+    folder_dataset_test = dset.ImageFolder(root=SiameseConfig.testing_dir)
+    siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset_test,
+                                            transform=transforms.Compose(
+                                                [transforms.Resize((SiameseConfig.imsize, SiameseConfig.imsize)),
+                                                 transforms.ToTensor()
+                                                 ])
+                                            , should_invert=False)
+
+    test_dataloader = DataLoader(siamese_dataset, num_workers=1, batch_size=1, shuffle=True)
+    dataiter = iter(test_dataloader)
+    x0, _, _ = next(dataiter)
+    net = net.cuda()
+    for i in range(10):
+        _, x1, label2 = next(dataiter)
+        concatenated = torch.cat((x0, x1), 0)
+
+        output1, output2 = net(Variable(x0).cuda(), Variable(x1).cuda())
+        print(output1, output2)
+        euclidean_distance = F.pairwise_distance(output1, output2)
+        print(euclidean_distance)
+        imshow(torchvision.utils.make_grid(concatenated),
+               'Dissimilarity: {:.2f}'.format(euclidean_distance.cpu().data.numpy()[0][0]))
+        time.sleep(.5)
+        plt.close()
+
+
+def save_model(net):
+    torch.save(net.state_dict(), SiameseConfig.model_path)
+
+
+def load_model():
+    net = SiameseNetwork()
+    net.load_state_dict(torch.load(SiameseConfig.model_path))
+    return net
