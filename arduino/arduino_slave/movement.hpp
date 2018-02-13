@@ -18,13 +18,13 @@ class Movement{
         int right_pwm;
         int right_dir;
 
-    public: 
-        void turn(int);
+    public:
+        void turn(Movement::turn_dir);
         void forward(int);
         void stop(void);
 
-        enum turn_dir {Left, Right};
-        
+        enum turn_dir {Left, Right, Forward, Backward};
+
         Movement(){
             left_forward = 8;
             left_backward = 9;
@@ -40,11 +40,11 @@ class Movement{
             pinMode(left_backward, OUTPUT);
             pinMode(left_pwm, OUTPUT);
 
-            
+
             pinMode(right_forward, OUTPUT);
             pinMode(right_backward, OUTPUT);
             pinMode(right_pwm, OUTPUT);
-            
+
         }
 
         Movement(int lf, int lb, int lp,

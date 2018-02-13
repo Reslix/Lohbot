@@ -1,6 +1,6 @@
 /*
  * Arduino code for 408i
- * 
+ * Moves, avoiding obstacles
  */
 
 #include "movement.hpp"
@@ -9,9 +9,13 @@
 Movement move;
 PingPing ping;
 
-int MIN_DIST = 25;
-int SPEED = 32;
-int sample = 100;
+int MIN_DIST = 60;
+int SPEED = 15;
+int sample = 1000;
+
+int debugArduinoSlave = 1;
+#define DebugArduinoSlave(args...) if (debugArduinoSlave) Serial.print(args)
+#define DebugArduinoSlaveln(args...) if (debugArduinoSlave) Serial.println(args)
 
 void setup() {
   // put your setup code here, to run once:
@@ -19,49 +23,44 @@ void setup() {
 
 }
 
-int decide_direction(int left, int mid, int right){
+Movement::turn_dir decide_direction(int left, int mid, int right){
     if(mid <= MIN_DIST || left <= MIN_DIST || right <= MIN_DIST){
         if(mid > left && mid > right && mid > MIN_DIST){
-            return -1;
+            return Forward;
         }
         if(left < right){
-            return 1;
+            return Right;
         }
         if(right < left){
-            return 0;
+            return Left;
         }
     }
-    return -1;
+    return Forward;
 }
 
 void loop() {
     // put your main code here, to run repeatedly:
     delay(sample);
-    int * distances = ping3();
-    int left_dist = distances[0];
-    int right_dist = distances[2];
-    int mid_dist = distances[1];
+    int left_dist = ping.distance_left();
+    int right_dist = ping.distance_right();
+    int mid_dist = ping.distance_middle();
+    DebugArduinoSlave("left: ");
+    DebugArduinoSlave(left_dist);
+    DebugArduinoSlave("; right: ");
+    DebugArduinoSlave(right_dist);
+    DebugArduinoSlave("; middle: ");
+    DebugArduinoSlaveln(mid_dist);
 
     int dir = decide_direction(left_dist, mid_dist, right_dist);
 
-    if(dir != -1){
-        move.forward(0);
-        if(dir == 0){
-            move.turn(1);
-        }else{
-            move.turn(0);
-        }
+    if(dir != Forward){
+        DebugArduinoSlave("Turning in direction: ");
+        DebugArduinoSlaveln(dir);
+        move.stop();
+        move.turn(dir);
     }else{
+        DebugArduinoSlave("Going forward.");
+        move.stop();
         move.forward(SPEED);
     }
-}
-
-int * ping3(){
-    int distances[3];
-
-    distances[0] = ping.distance_left();
-    distances[1] = ping.distance_middle();
-    distances[2] = ping.distance_right();
-
-    return distances;
 }
