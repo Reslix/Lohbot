@@ -15,7 +15,7 @@ void Movement::turn(Movement::turn_dir dir){
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
 
-        analogWrite(right_pwm, 48*scaling);
+        analogWrite(right_pwm, 48*SCALING);
         analogWrite(left_pwm, 48);
     }else if (dir == Right) {
         digitalWrite(left_forward, HIGH);
@@ -24,14 +24,12 @@ void Movement::turn(Movement::turn_dir dir){
         digitalWrite(right_forward, LOW);
         digitalWrite(right_backward, HIGH);
 
-        analogWrite(right_pwm, 48*scaling);
+        analogWrite(right_pwm, 48*SCALING);
         analogWrite(left_pwm, 48);
     }
 }
 
 void Movement::forward(int speed){
-  Serial.print("speed: ");
-        Serial.println(speed);
     if(speed < 0){
         digitalWrite(left_forward, LOW);
         digitalWrite(left_backward, HIGH);
@@ -39,7 +37,7 @@ void Movement::forward(int speed){
         digitalWrite(right_forward, LOW);
         digitalWrite(right_backward, HIGH);
 
-        analogWrite(right_pwm, -speed*scaling);
+        analogWrite(right_pwm, -speed*SCALING);
         analogWrite(left_pwm, -speed);
     }else{
         digitalWrite(left_forward, HIGH);
@@ -47,7 +45,7 @@ void Movement::forward(int speed){
 
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
-        analogWrite(right_pwm, speed*scaling);
+        analogWrite(right_pwm, speed*SCALING);
         analogWrite(left_pwm, speed);
     }
 }
@@ -55,4 +53,3 @@ void Movement::forward(int speed){
 void Movement::stop(){
   Movement::forward(0);
 }
-

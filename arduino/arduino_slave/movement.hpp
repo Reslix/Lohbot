@@ -3,11 +3,11 @@
  * Written for ENEE408i at UMD
  * Kyle Montemayor
  */
+ #include "Arduino.h"
 #ifndef __MOVEMENT_H__
 #define __MOVEMENT_H__
 
-#define scaling 1.7
-
+#define SCALING 0.9
 class Movement{
     private:
         int left_forward;

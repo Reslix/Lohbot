@@ -9,8 +9,8 @@
 Movement move;
 PingPing ping;
 
-int MIN_DIST = 40;
-int SPEED = 32;
+int MIN_DIST = 12;
+int SPEED = 0;
 int sample = 1000;
 
 int debugArduinoSlave = 1;
@@ -52,19 +52,18 @@ void loop() {
     DebugArduinoSlaveln(mid_dist);
 
     Movement::turn_dir dir = decide_direction(left_dist, mid_dist, right_dist);
-/*
+
     if(dir != Movement::Forward){
         DebugArduinoSlave("Turning in direction: ");
         DebugArduinoSlaveln(dir);
         move.stop();
         delay(100);
         move.turn(dir);
-    }else{*/
+    }else{
         DebugArduinoSlave("Going forward.");
         DebugArduinoSlaveln();
         move.stop();
         delay(100);
-        Serial.println(-SPEED);
-        move.forward(-SPEED);
-    //}
+        move.forward(SPEED);
+    }
 }
