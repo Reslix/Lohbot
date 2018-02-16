@@ -10,9 +10,10 @@ certain of as well as prepare training data. (probably remotely)
 credit for the neural network goes to gttps://github.com/harveyslash
 
 """
-
 import random
 import time
+import uuid
+import os
 
 import PIL
 import cv2
@@ -29,7 +30,6 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 
 face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
 
 
 def imshow(img, text=None, should_save=False):
@@ -48,7 +48,7 @@ def show_plot(iteration, loss):
 
 
 class Face(object):
-    def __init__(self, image, bounds, eyes):
+    def __init__(self, image, bounds):
         """
         We initalize a face object with these parameters because this object is only used to track in-environment faces.
 
@@ -60,13 +60,38 @@ class Face(object):
         """
         self.images = [image]
         self.bounds = bounds
-        self.eyes = eyes
+        self.old_bounds = None
+        self.name = ""  # Set this later
+
+    def add_image(self, image):
+        self.images = self.images[-4:] + image
 
 
 class Faces(object):
     def __init__(self):
-        self.faces = []
-        self.current = []
+        self.model = load_model()
+        self.detected_faces = []
+        self.identified_faces = {}
+        self.faces = {}
+        with open(SiameseConfig.vec_path, 'r') as f:
+            r = f.readlines()
+            for line in r:
+                line = line.split("|")
+                self.faces[line[0]] = np.array([float(x) for x in line[1].split(",")])
+
+    def save_model(self):
+        save_model(self.model)
+
+    def save_collected(self):
+        for person in self.identified_faces:
+            for image in self.identified_faces[person].images:
+                image.save(os.join("data", "siamesetraining", person,
+                                   len(os.listdir(os.join("data", "siamesetraining", person + ".bmp")))))
+
+    def save_identities(self):
+        with open(SiameseConfig.vec_path, 'w') as f:
+            lines = ["{}|{}\n".format(name, ",".join([x for x in self.faces[name]])) for name in self.faces]
+            f.writelines(lines)
 
     def detect_in_current_frame(self, image):
         """
@@ -74,13 +99,12 @@ class Faces(object):
         :param image:
         :return:
         """
+        self.detected_faces = []
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         for (x, y, w, h) in faces:
             roi_gray = gray[y:y + h, x:x + w]
-            eyes = eye_cascade.detectMultiScale(roi_gray)
-
-            self.current.append(Face(image[x:x + w, y:y + h], (x, y, w, h), eyes))
+            self.detected_faces.append(Face(image[x:x + w, y:y + h], (x, y, w, h)))
 
         for (x, y, w, h) in faces:
             cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 1)
@@ -93,6 +117,90 @@ class Faces(object):
         database. As this is resource intensive we don't run this real time.
         :return:
         """
+        for face in self.detected_faces:
+            name = self.identify_face_short(face)[0]
+            if name is None:
+                name = self.identify_face_long(face)[0]
+            if name in self.identified_faces:
+                self.identified_faces[name].add_image(face.image)
+                self.identified_faces[name].old_bounds = self.identified_faces[name].bounds
+                self.identified_faces[name].bounds = face.bounds
+                del face
+            else:
+                face.name = name
+                self.identified_faces[name] = face
+
+    def get_diff(self, vec1, vec2):
+        return F.pairwise_distance(vec1, vec2)
+
+    def identify_face_short(self, face):
+        """
+        Uses a bruite force evaluation that attempts to match the encoding vector with either a previously identified
+        face or create a new identity. This searches through currently detected faces
+        :param image:
+        :return:
+        """
+        img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
+        im_pil = Image.fromarray(img)
+        transform = transforms.Compose([transforms.Resize(SiameseConfig.imsize, SiameseConfig.imsize),
+                                        transforms.ToTensor()])
+
+        img = im_pil.convert("L")
+        img = PIL.ImageOps.invert(img)
+        input = transform(img)
+
+        output = self.model(input)
+
+        candidates = []
+        for person in self.identified_faces:
+            person = self.identified_faces[person]
+            diff = sum([self.get_diff(image, output) for image in person.images]) / float(len(person.images))
+            if diff < 1.0:
+                candidates.append((diff, person.name))
+
+        candidates.sort()
+
+        if len(candidates) is 0:
+            return None
+
+        return [self.faces[candidate[1]] for candidate in candidates]
+
+    def identify_face_long(self, face):
+        """
+        Uses a bruite force evaluation that attempts to match the encoding vector with either a previously identified
+        face or create a new identity. This goes through the entire face database so it may take a long time.
+        :param image:
+        :return:
+        """
+        img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
+        im_pil = Image.fromarray(img)
+        transform = transforms.Compose([transforms.Resize(SiameseConfig.imsize, SiameseConfig.imsize),
+                                        transforms.ToTensor()])
+
+        img = im_pil.convert("L")
+        img = PIL.ImageOps.invert(img)
+        input = transform(img)
+
+        output = self.model(input)
+
+        candidates = []
+        for person in self.faces:
+            diff = self.get_diff(self.faces[person], output)
+            if diff < 1.0:
+                candidates.append((diff, person))
+
+        candidates.sort()
+
+        if len(candidates) is 0:
+            newname = "UID: " + str(uuid.uuid4())
+            self.faces[newname] = output
+            im_pil.save(os.join("data", "siamesetraining", newname, "0.bmp"))
+            return [newname]
+
+        im_pil.save(os.join("data", "siamesetraining", candidates[0][1],
+                            len(os.listdir(os.join("data", "siamesetraining", candidates[0][1] + ".bmp")))))
+
+        return [self.faces[candidate[1]] for candidate in candidates]
 
 
 # From here on I lifted the entire thing because I couldn't bother with coming up something original
@@ -101,6 +209,7 @@ class SiameseConfig():
     training_dir = "./data/siamesetraining/"
     testing_dir = "./data/siamesetesting/"
     model_path = "./models/siamese.torch"
+    vec_path = "./data/kookynsa.txt"
     train_batch_size = 64
     train_number_epochs = 100
     imsize = 96
