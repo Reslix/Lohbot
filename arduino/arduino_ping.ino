@@ -21,11 +21,11 @@ void loop() {
   Serial.print("left: ");
   Serial.println(obstacle_val);
 
-//  obstacle_val = pingping.distance_middle();
-//  Serial.print("center: ");
-//  Serial.println(obstacle_val);
+ obstacle_val = pingping.distance_middle();
+ Serial.print("center: ");
+ Serial.println(obstacle_val);
 
-//  obstacle_val = pingping.distance_right();
-//  Serial.print("right: ");
-//  Serial.println(obstacle_val);
+ obstacle_val = pingping.distance_right();
+ Serial.print("right: ");
+ Serial.println(obstacle_val);
 }

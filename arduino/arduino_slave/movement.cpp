@@ -7,7 +7,7 @@
 #include "Arduino.h"
 #include "movement.hpp"
 
-void Movement::turn(int dir){
+void Movement::turn(Movement::turn_dir dir){
     if(dir == Left){
         digitalWrite(left_forward, LOW);
         digitalWrite(left_backward, HIGH);
@@ -15,18 +15,18 @@ void Movement::turn(int dir){
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
 
-        analogWrite(right_pwm, 32);
+        analogWrite(right_pwm, 48*SCALING);
         analogWrite(left_pwm, 48);
-    }else{
+    }else if (dir == Right) {
         digitalWrite(left_forward, HIGH);
         digitalWrite(left_backward, LOW);
 
         digitalWrite(right_forward, LOW);
         digitalWrite(right_backward, HIGH);
 
-        analogWrite(right_pwm, 48);
-        analogWrite(left_pwm, 32);
-    }   
+        analogWrite(right_pwm, 48*SCALING);
+        analogWrite(left_pwm, 48);
+    }
 }
 
 void Movement::forward(int speed){
@@ -37,16 +37,15 @@ void Movement::forward(int speed){
         digitalWrite(right_forward, LOW);
         digitalWrite(right_backward, HIGH);
 
-        analogWrite(right_pwm, speed);
-        analogWrite(left_pwm, speed);
+        analogWrite(right_pwm, -speed*SCALING);
+        analogWrite(left_pwm, -speed);
     }else{
         digitalWrite(left_forward, HIGH);
         digitalWrite(left_backward, LOW);
 
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
-
-        analogWrite(right_pwm, speed);
+        analogWrite(right_pwm, speed*SCALING);
         analogWrite(left_pwm, speed);
     }
 }
@@ -54,4 +53,3 @@ void Movement::forward(int speed){
 void Movement::stop(){
   Movement::forward(0);
 }
-

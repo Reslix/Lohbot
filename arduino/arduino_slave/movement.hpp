@@ -3,9 +3,11 @@
  * Written for ENEE408i at UMD
  * Kyle Montemayor
  */
+ #include "Arduino.h"
 #ifndef __MOVEMENT_H__
 #define __MOVEMENT_H__
 
+#define SCALING 0.9
 class Movement{
     private:
         int left_forward;
@@ -18,13 +20,12 @@ class Movement{
         int right_pwm;
         int right_dir;
 
-    public: 
-        void turn(int);
+    public:
+        enum turn_dir {Left, Right, Forward, Backward};
+        void turn(Movement::turn_dir);
         void forward(int);
         void stop(void);
 
-        enum turn_dir {Left, Right};
-        
         Movement(){
             left_forward = 8;
             left_backward = 9;
@@ -40,11 +41,11 @@ class Movement{
             pinMode(left_backward, OUTPUT);
             pinMode(left_pwm, OUTPUT);
 
-            
+
             pinMode(right_forward, OUTPUT);
             pinMode(right_backward, OUTPUT);
             pinMode(right_pwm, OUTPUT);
-            
+
         }
 
         Movement(int lf, int lb, int lp,

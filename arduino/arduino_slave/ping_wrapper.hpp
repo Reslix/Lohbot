@@ -9,7 +9,7 @@
 
 class PingPing{
     private:
-        uint8_t left_pin = 4;
+        uint8_t left_pin = 2;
         uint8_t middle_pin = 6;
         uint8_t right_pin = 7;
         // Obstacles above this distance are reported as clear
