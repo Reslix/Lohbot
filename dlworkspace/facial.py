@@ -32,19 +32,28 @@ from torch.utils.data import DataLoader, Dataset
 face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
 
 
-def imshow(img, text=None, should_save=False):
-    npimg = img.numpy()
+def imshow(img, text=None, im=None):
     plt.axis("off")
-    if text:
+    if text is not None:
         plt.text(75, 8, text, style='italic', fontweight='bold',
                  bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 10})
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show(block=False)
+    if im is None:
+        plt.ion()
+        im = plt.imshow(img)
+    else:
+        im.set_data(img)
+    plt.show()
+    plt.pause(.033333)
+    return im
+
+
+def close_plt():
+    plt.ioff()
 
 
 def show_plot(iteration, loss):
     plt.plot(iteration, loss)
-    plt.show(block=False)
+    plt.show()
 
 
 class Face(object):
@@ -62,9 +71,10 @@ class Face(object):
         self.bounds = bounds
         self.old_bounds = None
         self.name = ""  # Set this later
+        self.vector = None
 
     def add_image(self, image):
-        self.images = self.images[-4:] + image
+        self.images = self.images[-4:] + [image]
 
 
 class Faces(object):
@@ -77,7 +87,12 @@ class Faces(object):
             r = f.readlines()
             for line in r:
                 line = line.split("|")
-                self.faces[line[0]] = np.array([float(x) for x in line[1].split(",")])
+                self.faces[line[0]] = Variable(torch.from_numpy(
+                    np.array([float(x) for x in line[1].split(",")], dtype=np.float32)) \
+                                               .view(1, 8))
+        if torch.cuda.is_available():
+            for face in self.faces:
+                self.faces[face] = self.faces[face].cuda()
 
     def save_model(self):
         save_model(self.model)
@@ -85,12 +100,18 @@ class Faces(object):
     def save_collected(self):
         for person in self.identified_faces:
             for image in self.identified_faces[person].images:
-                image.save(os.join("data", "siamesetraining", person,
-                                   len(os.listdir(os.join("data", "siamesetraining", person + ".bmp")))))
+                if not os.path.exists(os.path.join("data", "siamesetraining", person)):
+                    os.mkdir(os.path.join("data", "siamesetraining", person))
+                image.save(os.path.join("data", "siamesetraining", person, str(
+                    len(os.listdir(os.path.join("data", "siamesetraining", person)))) + ".bmp"))
 
     def save_identities(self):
         with open(SiameseConfig.vec_path, 'w') as f:
-            lines = ["{}|{}\n".format(name, ",".join([x for x in self.faces[name]])) for name in self.faces]
+            combined = self.faces.copy()
+            for name in self.identified_faces:
+                combined[name] = self.identified_faces[name].vector
+            lines = ["{}|{}\n".format(name, ",".join(
+                [str(combined[name].data[0][x]) for x in range(combined[name].size()[1])])) for name in combined]
             f.writelines(lines)
 
     def detect_in_current_frame(self, image):
@@ -100,16 +121,39 @@ class Faces(object):
         :return:
         """
         self.detected_faces = []
+        # image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)  # cv2.COLOR_BGR2GRAY)
+
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         for (x, y, w, h) in faces:
-            roi_gray = gray[y:y + h, x:x + w]
-            self.detected_faces.append(Face(image[x:x + w, y:y + h], (x, y, w, h)))
+            x = x - w // 6
+            y = y - h // 4
+            w = w + w // 3
+            h = h + h // 2
+
+            if w >= SiameseConfig.imsize and h >= SiameseConfig.imsize:
+                self.detected_faces.append(Face(image.copy()[y:y + h, x:x + w], (x, y, w, h)))
 
         for (x, y, w, h) in faces:
-            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 0), 1)
+            x = x - w // 6
+            y = y - h // 4
+            w = w + w // 3
+            h = h + h // 2
+
+            if w >= SiameseConfig.imsize and h >= SiameseConfig.imsize:
+                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
         return image
+
+    def single_face_capture(self, name):
+        for face in self.detected_faces:
+            img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
+            im_pil = Image.fromarray(img)
+            if not os.path.exists(os.path.join("data", "siamesetraining", name)):
+                os.mkdir(os.path.join("data", "siamesetraining", name))
+            im_pil.save(os.path.join("data", "siamesetraining", name, str(
+                len(os.listdir(os.path.join("data", "siamesetraining", name)))) + ".bmp"))
 
     def track_faces(self):
         """
@@ -118,16 +162,15 @@ class Faces(object):
         :return:
         """
         for face in self.detected_faces:
-            name = self.identify_face_short(face)[0]
+            name = self.identify_face_short(face)
             if name is None:
-                name = self.identify_face_long(face)[0]
+                name = self.identify_face_long(face)
+            face.name = name
             if name in self.identified_faces:
-                self.identified_faces[name].add_image(face.image)
+                self.identified_faces[name].add_image(face.images[0])
                 self.identified_faces[name].old_bounds = self.identified_faces[name].bounds
                 self.identified_faces[name].bounds = face.bounds
-                del face
             else:
-                face.name = name
                 self.identified_faces[name] = face
 
     def get_diff(self, vec1, vec2):
@@ -140,30 +183,35 @@ class Faces(object):
         :param image:
         :return:
         """
+        print("face_short")
+        print(face.name)
         img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
         im_pil = Image.fromarray(img)
-        transform = transforms.Compose([transforms.Resize(SiameseConfig.imsize, SiameseConfig.imsize),
+        transform = transforms.Compose([transforms.Resize((SiameseConfig.imsize, SiameseConfig.imsize)),
                                         transforms.ToTensor()])
 
         img = im_pil.convert("L")
-        img = PIL.ImageOps.invert(img)
-        input = transform(img)
+        input = transform(img).view(1, 1, SiameseConfig.imsize, SiameseConfig.imsize)
 
-        output = self.model(input)
+        if torch.cuda.is_available():
+            output = self.model(Variable(input).cuda())
+        else:
+            output = self.model(Variable(input))
 
         candidates = []
         for person in self.identified_faces:
             person = self.identified_faces[person]
-            diff = sum([self.get_diff(image, output) for image in person.images]) / float(len(person.images))
-            if diff < 1.0:
-                candidates.append((diff, person.name))
+            diff = self.get_diff(person.vector, output)
+            if diff.data[0][0] < 1.0:
+                candidates.append((diff.data[0][0], person.name))
+                person.vector += (person.vector - torch.mean(torch.cat((output, person.vector), dim=0), dim=0)) * .01
 
         candidates.sort()
 
         if len(candidates) is 0:
             return None
 
-        return [self.faces[candidate[1]] for candidate in candidates]
+        return candidates[0][1]
 
     def identify_face_long(self, face):
         """
@@ -172,35 +220,49 @@ class Faces(object):
         :param image:
         :return:
         """
+        print("face_long")
         img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
         im_pil = Image.fromarray(img)
-        transform = transforms.Compose([transforms.Resize(SiameseConfig.imsize, SiameseConfig.imsize),
+        transform = transforms.Compose([transforms.Resize((SiameseConfig.imsize, SiameseConfig.imsize)),
                                         transforms.ToTensor()])
 
         img = im_pil.convert("L")
-        img = PIL.ImageOps.invert(img)
-        input = transform(img)
+        input = transform(img).view(1, 1, SiameseConfig.imsize, SiameseConfig.imsize)
 
-        output = self.model(input)
-
+        if torch.cuda.is_available():
+            output = self.model(Variable(input).cuda())
+        else:
+            output = self.model(Variable(input))
         candidates = []
         for person in self.faces:
             diff = self.get_diff(self.faces[person], output)
-            if diff < 1.0:
-                candidates.append((diff, person))
+            if diff.data[0][0] < 1.0:
+                candidates.append((diff.data[0][0], person))
 
         candidates.sort()
 
         if len(candidates) is 0:
-            newname = "UID: " + str(uuid.uuid4())
-            self.faces[newname] = output
-            im_pil.save(os.join("data", "siamesetraining", newname, "0.bmp"))
-            return [newname]
+            newname = str(uuid.uuid4().int % 2000)
+            face.name = newname
+            face.vector = output
+            if not os.path.exists(os.path.join("data", "siameseraw", newname)):
+                os.mkdir(os.path.join("data", "siameseraw", newname))
+            im_pil.save(os.path.join("data", "siameseraw", newname, "0.bmp"))
+            face.name = newname
+            face.vector = output
+            self.save_identities()
+            return newname
 
-        im_pil.save(os.join("data", "siamesetraining", candidates[0][1],
-                            len(os.listdir(os.join("data", "siamesetraining", candidates[0][1] + ".bmp")))))
+        if not os.path.exists(os.path.join("data", "siameseraw", candidates[0][1])):
+            os.mkdir(os.path.join("data", "siameseraw", candidates[0][1]))
 
-        return [self.faces[candidate[1]] for candidate in candidates]
+        im_pil.save(os.path.join("data", "siameseraw", candidates[0][1], str(
+            len(os.listdir(os.path.join("data", "siameseraw", candidates[0][1])))) + ".bmp"))
+
+        face.name = candidates[0][1]
+        face.vector = self.faces[candidates[0][1]]
+
+        return candidates[0][1]
 
 
 # From here on I lifted the entire thing because I couldn't bother with coming up something original
@@ -235,7 +297,7 @@ class ContrastiveLoss(torch.nn.Module):
 
 
 class SiameseNetworkDataset(Dataset):
-    def __init__(self, imageFolderDataset, transform=None, should_invert=True):
+    def __init__(self, imageFolderDataset, transform=None, should_invert=False):
         self.imageFolderDataset = imageFolderDataset
         self.transform = transform
         self.should_invert = should_invert
@@ -305,16 +367,11 @@ class SiameseNetwork(nn.Module):
             nn.Linear(256, 8)
         )
 
-    def forward_once(self, x):
+    def forward(self, x):
         output = self.cnn1(x)
         output = output.view(output.size()[0], -1)
         output = self.fc1(output)
         return output
-
-    def forward(self, input1, input2):
-        output1 = self.forward_once(input1)
-        output2 = self.forward_once(input2)
-        return output1, output2
 
 
 def train_siamese(net):
@@ -348,7 +405,7 @@ def train_siamese(net):
             else:
                 img0, img1, label = Variable(img0), Variable(img1), Variable(label)
 
-            output1, output2 = net(img0, img1)
+            output1, output2 = net(img0), net(img1)
             optimizer.zero_grad()
             loss_contrastive = criterion(output1, output2, label)
             loss_contrastive.backward()
@@ -372,25 +429,25 @@ def test_siamese(net):
 
     test_dataloader = DataLoader(siamese_dataset, num_workers=1, batch_size=1, shuffle=True)
     dataiter = iter(test_dataloader)
-    x0, _, _ = next(dataiter)
+
     if torch.cuda.is_available():
         net = net.cuda()
-    for i in range(10):
-        _, x1, label2 = next(dataiter)
-        concatenated = torch.cat((x0, x1), 0)
+    for j in range(min(5, len(dataiter) // 10)):
+        x0, _, _ = next(dataiter)
+        for i in range(5):
+            _, x1, label2 = next(dataiter)
+            concatenated = torch.cat((x0, x1), 0)
 
-        if torch.cuda.is_available():
-            output1, output2 = net(Variable(x0).cuda(), Variable(x1).cuda())
-        else:
-            output1, output2 = net(Variable(x0), Variable(x1))
+            if torch.cuda.is_available():
+                output1, output2 = net(Variable(x0).cuda()), net(Variable(x1).cuda())
+            else:
+                output1, output2 = net(Variable(x0)), net(Variable(x1))
 
-        print(output1, output2)
-        euclidean_distance = F.pairwise_distance(output1, output2)
-        print(euclidean_distance)
-        imshow(torchvision.utils.make_grid(concatenated),
-               'Dissimilarity: {:.2f}'.format(euclidean_distance.cpu().data.numpy()[0][0]))
-        time.sleep(.5)
-        plt.close()
+            euclidean_distance = F.pairwise_distance(output1, output2)
+            imshow(np.transpose(torchvision.utils.make_grid(concatenated).numpy(), (1, 2, 0)),
+                   'Dissimilarity: {:.2f}'.format(euclidean_distance.cpu().data.numpy()[0][0]))
+            time.sleep(.5)
+            plt.close()
 
 
 def save_model(net):
@@ -400,4 +457,30 @@ def save_model(net):
 def load_model():
     net = SiameseNetwork()
     net.load_state_dict(torch.load(SiameseConfig.model_path))
+    if torch.cuda.is_available():
+        net = net.cuda()
     return net
+
+
+if __name__ == "__main__":
+
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description='Deals with Siamese Network training and such')
+    # Parse command line arguments
+    parser.add_argument("command",
+                        metavar="<command>",
+                        help="'new', 'train', or 'evaluate'")
+    args = parser.parse_args()
+
+    if args.command == "new":
+        print("New network created")
+        save_model(SiameseNetwork())
+    elif args.command == "train":
+        net = load_model()
+        train_siamese(net)
+        save_model(net)
+    elif args.command == "evaluate":
+        net = load_model()
+        test_siamese(net)
