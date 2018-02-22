@@ -15,7 +15,7 @@ void Movement::turn(Movement::turn_dir dir){
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
 
-        analogWrite(right_pwm, 48*SCALING);
+        analogWrite(right_pwm, 64*SCALING);
         analogWrite(left_pwm, 48);
     }else if (dir == Right) {
         digitalWrite(left_forward, HIGH);
@@ -25,7 +25,7 @@ void Movement::turn(Movement::turn_dir dir){
         digitalWrite(right_backward, HIGH);
 
         analogWrite(right_pwm, 48*SCALING);
-        analogWrite(left_pwm, 48);
+        analogWrite(left_pwm, 64);
     }
 }
 
