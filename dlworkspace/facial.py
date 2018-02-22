@@ -43,7 +43,7 @@ def imshow(img, text=None, im=None):
     else:
         im.set_data(img)
     plt.show()
-    plt.pause(.033333)
+    plt.pause(.03)
     return im
 
 
@@ -124,7 +124,7 @@ class Faces(object):
         # image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)  # cv2.COLOR_BGR2GRAY)
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
+        image= cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         for (x, y, w, h) in faces:
             x = x - w // 6

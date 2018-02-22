@@ -3,15 +3,16 @@ from facial import Faces, imshow
 
 import cv2
 
-
+delay = 30
 class CameraRunner():
     def __init__(self):
         self.faces = Faces()
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.cap.set(cv2.CAP_PROP_FPS, 30)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.cap.set(cv2.CAP_PROP_FPS, 15)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
+        print(self.cap.get(cv2.CAP_PROP_FOURCC))
         self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.frame = None
@@ -42,7 +43,7 @@ class CameraRunner():
     def prepare_capture(self, i):
         image = self.faces.detect_in_current_frame(self.frame)
         for face in self.faces.detected_faces:
-            cv2.putText(image, "Prepare for Capture " + str(60 - i), (face.bounds[0], face.bounds[1]),
+            cv2.putText(image, "Prepare for Capture " + str(delay - i), (face.bounds[0], face.bounds[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0),
                         2, cv2.LINE_AA)
         self.im = imshow(image, im=self.im)
@@ -68,8 +69,7 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description='Deals with all camera related stuff')
-    parser.add_argument('--name', required=False,
-                        metavar="Name of person",
+    parser.add_argument('-n', required=False, action="store",
                         help='Name of person')
     parser.add_argument('--frames', required=False,
                         metavar="Number of frame captures", default=100,
@@ -77,23 +77,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     c = CameraRunner()
-
-    if args.name is None:
-        for i in range(60):
+    print(args)
+    if args.n is None:
+        for i in range(delay):
             c.step_frame()
             c.prepare_capture(i)
-
+        
         while True:
             c.step_frame()
             c.facial()
 
-    if args.name is not None:
-        for i in range(60):
+    if args.n is not None:
+        for i in range(delay):
             c.step_frame()
             c.prepare_capture(i)
 
         for i in range(args.frames):
             c.step_frame()
-            c.capture(i, args.name)
+            c.capture(i, args.n)
 
         c.close()
