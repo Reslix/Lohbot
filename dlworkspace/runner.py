@@ -9,10 +9,9 @@ class CameraRunner():
         self.faces = Faces()
         self.cap = cv2.VideoCapture(1)
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.cap.set(cv2.CAP_PROP_FPS, 15)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
-        print(self.cap.get(cv2.CAP_PROP_FOURCC))
+        self.cap.set(cv2.CAP_PROP_FPS, 24)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
         self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.frame = None

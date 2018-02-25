@@ -42,8 +42,8 @@ def imshow(img, text=None, im=None):
         im = plt.imshow(img)
     else:
         im.set_data(img)
-    plt.show()
-    plt.pause(.03)
+    plt.draw()
+    plt.pause(.003)
     return im
 
 
@@ -121,7 +121,6 @@ class Faces(object):
         :return:
         """
         self.detected_faces = []
-        # image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)  # cv2.COLOR_BGR2GRAY)
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image= cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -148,8 +147,7 @@ class Faces(object):
 
     def single_face_capture(self, name):
         for face in self.detected_faces:
-            img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
-            im_pil = Image.fromarray(img)
+            im_pil = Image.fromarray(face.images[0])
             if not os.path.exists(os.path.join("data", "siamesetraining", name)):
                 os.mkdir(os.path.join("data", "siamesetraining", name))
             im_pil.save(os.path.join("data", "siamesetraining", name, str(
@@ -185,8 +183,7 @@ class Faces(object):
         """
         print("face_short")
         print(face.name)
-        img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
-        im_pil = Image.fromarray(img)
+        im_pil = Image.fromarray(face.images[0])
         transform = transforms.Compose([transforms.Resize((SiameseConfig.imsize, SiameseConfig.imsize)),
                                         transforms.ToTensor()])
 
@@ -221,8 +218,7 @@ class Faces(object):
         :return:
         """
         print("face_long")
-        img = cv2.cvtColor(face.images[0], cv2.COLOR_BGR2RGB)
-        im_pil = Image.fromarray(img)
+        im_pil = Image.fromarray(face.images[0])
         transform = transforms.Compose([transforms.Resize((SiameseConfig.imsize, SiameseConfig.imsize)),
                                         transforms.ToTensor()])
 
