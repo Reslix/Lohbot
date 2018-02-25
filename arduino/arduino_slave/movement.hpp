@@ -7,7 +7,7 @@
 #ifndef __MOVEMENT_H__
 #define __MOVEMENT_H__
 
-#define SCALING 0.9
+#define SCALING 0.85
 class Movement{
     private:
         int left_forward;
@@ -21,7 +21,7 @@ class Movement{
         int right_dir;
 
     public:
-        enum turn_dir {Left, Right, Forward, Backward};
+        enum turn_dir {Right, Left, Forward, Backward};
         void turn(Movement::turn_dir);
         void forward(int);
         void stop(void);

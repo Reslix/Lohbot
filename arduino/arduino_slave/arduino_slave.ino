@@ -9,9 +9,9 @@
 Movement move;
 PingPing ping;
 
-int MIN_DIST = 12;
-int SPEED = 0;
-int sample = 1000;
+int MIN_DIST = 30;
+int SPEED = 48;
+int sample = 10;
 
 int debugArduinoSlave = 1;
 #define DebugArduinoSlave(args...) if (debugArduinoSlave) Serial.print(args)
@@ -57,13 +57,13 @@ void loop() {
         DebugArduinoSlave("Turning in direction: ");
         DebugArduinoSlaveln(dir);
         move.stop();
-        delay(100);
+        delay(10);
         move.turn(dir);
     }else{
         DebugArduinoSlave("Going forward.");
         DebugArduinoSlaveln();
         move.stop();
-        delay(100);
+        delay(10);
         move.forward(SPEED);
     }
 }
