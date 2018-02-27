@@ -17,7 +17,6 @@ enum commands {move, get_dist};
 union Data {
     int i;
     float f;
-    Movement::turn_dir;    
 } data;
 
 typedef struct {
