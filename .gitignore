@@ -7,6 +7,8 @@
 *.o
 *.list
 
+*.pem
+
 #IDEs
 .idea/
 .vscode/
