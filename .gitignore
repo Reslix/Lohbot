@@ -7,8 +7,9 @@
 *.o
 *.list
 
-#IDES REEEEEEEEEE
-.idea
+#IDEs
+.idea/
+.vscode/
 
 #stupid directories they give us
 __MACOSX/

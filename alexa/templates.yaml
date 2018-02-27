@@ -1,0 +1,5 @@
+turn: I am turning {{ direction }}.
+
+stop: I am stopping.
+
+move_forward: I am moving forward.

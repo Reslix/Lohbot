@@ -1,0 +1,19 @@
+{
+  "intents": [
+    {
+      "intent": "StopIntent"
+    },
+    {
+      "intent": "StartMovingIntent"
+    },
+    {
+      "intent": "TurnIntent",
+      "slots": [
+        {
+          "name": "Direction",
+          "type": "TURN_DIRECTION"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Add as custom slot type
+TURN_DIRECTION
+left
+right
