@@ -1,6 +1,8 @@
 from threading import Thread
 
 import cv2
+
+from balltrack import track_tennis_ball
 from show import imshow
 
 from facial import Faces
@@ -38,9 +40,9 @@ class Camera:
 
 
 class CameraRunner():
-    def __init__(self):
+    def __init__(self, camera=0):
         self.faces = Faces()
-        self.camera = Camera(1)
+        self.camera = Camera(camera)
         self.camera.start()
         self.frame = None
         self.im = None
@@ -52,6 +54,11 @@ class CameraRunner():
         self.camera.release()
         cv2.destroyAllWindows()
         del self.faces
+
+    def track_tennis_ball(self):
+        center, radius, image = track_tennis_ball(self.frame)
+        self.im = imshow(image, self.im)
+        return center, radius
 
     def step_frame(self):
 

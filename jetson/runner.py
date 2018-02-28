@@ -44,7 +44,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     #We have a single instance of our serial communicator
-    serial = SerialIO()
+
+    c = CameraRunner(1)
+    while True:
+        c.step_frame()
+        center, radius = c.track_tennis_ball()
 
     """
     c = CameraRunner()
