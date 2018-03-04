@@ -1,9 +1,9 @@
 from threading import Thread
 
 import cv2
-
-from facial import Faces
 from show import imshow
+
+from jetson.facial import Faces
 
 delay = 30
 

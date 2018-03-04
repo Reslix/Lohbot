@@ -1,4 +1,4 @@
-from camera import CameraRunner
+from jetson.camera import CameraRunner
 
 delay = 30
 
