@@ -1,5 +1,32 @@
 from jetson.camera import CameraRunner
 
+"""
+The object structure will be as follows: 
+    
+    Motion()
+        Serial()
+        Map()
+            Mapper()
+                Various Sensors()
+                    Serial()
+                    Segmenter()
+                    Object()
+                    Depth()
+    CameraRunner()
+        Face()
+        Pose()
+        Object()
+        Depth()
+        Segmenter()
+    Alexa()
+    ...
+    ...
+
+    Ideally we have all the classes declared in here so we can reduce redundancy.
+    
+"""
+
+
 delay = 30
 
 if __name__ == "__main__":
@@ -16,6 +43,10 @@ if __name__ == "__main__":
                         help='Number of frame captures')
     args = parser.parse_args()
 
+    #We have a single instance of our serial communicator
+    serial = SerialIO()
+
+    """
     c = CameraRunner()
     print(args)
     if args.n is None:
@@ -37,3 +68,6 @@ if __name__ == "__main__":
             c.capture(i, args.n)
 
         c.close()
+        
+    """
+

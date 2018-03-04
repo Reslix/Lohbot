@@ -8,5 +8,5 @@ class Mapper(object):
     """
     Keeps track of the robots location in relation to mapped objects/obstacles.
     """
-     def __init__(self):
+    def __init__(self):
          self.map = []
