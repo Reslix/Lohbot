@@ -21,47 +21,51 @@ int debugArduinoSlave = 1;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-
+  Serial.flush();
+  Serial.write('S');
+  
 }
 
 void loop() {
     char c;
-    while (Serial.available() > 0){
+    if (Serial.available() > 0){
         c = Serial.read();
+        // I know switches aren't the best...
         switch(c){
-            case STOP:
-                move.stop();
-                Serial.write(1);
+            case 's':
+                //move.stop();
+                Serial.write('s');
                 break;
-            case FWD:
-                move.forward(SPEED);
-                Serial.write(1);
+            case 'f':
+                //move.forward(SPEED);
+                Serial.write('f');
                 break;
-            case BAK:
-                move.forward(-SPEED);
-                Serial.write(1);
+            case 'b':
+                //move.forward(-SPEED);
+                Serial.write('b');
                 break;
-            case LFT:
-                move.turn(Movement::turn_dir::Left);
-                Serial.write(1);
+            case 'l':
+                //move.turn(Movement::turn_dir::Left);
+                Serial.write('l');
                 break;
-            case RHT:
-                move.turn(Movement::turn_dir::Right);
-                Serial.write(1);
+            case 'r':
+                //move.turn(Movement::turn_dir::Right);
+                Serial.write('r');
                 break;
-            case DSTL:
+            case 'x':
                 Serial.write(ping.distance_left());
                 break;
-            case DSTM:
+            case 'y':
                 Serial.write(ping.distance_middle());
                 break;
-            case DSTR:
+            case 'z':
                 Serial.write(ping.distance_right());
                 break;
             default:
-                Serial.write(-1);
+                Serial.write('E');
                 break;
         }
+        
 
     }
 }

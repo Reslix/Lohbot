@@ -2,7 +2,7 @@
 #define __BYTEPASSING_H__
 
 enum commands {
-				STOP,
+				        STOP,
                 FWD,
                 BAK,
                 LFT,
