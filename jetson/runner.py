@@ -1,4 +1,4 @@
-from jetson.camera import CameraRunner
+from camera import CameraRunner
 
 """
 The object structure will be as follows: 

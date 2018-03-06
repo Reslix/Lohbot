@@ -21,7 +21,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 from torch.autograd import Variable
 
-from jetson.siamesenetwork import SiameseConfig, load_model, save_model
+from siamesenetwork import SiameseConfig, load_model, save_model
 
 face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
 
