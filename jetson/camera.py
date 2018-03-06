@@ -3,13 +3,13 @@ from threading import Thread
 import cv2
 from show import imshow
 
-from jetson.facial import Faces
+from facial import Faces
 
 delay = 30
 
 
 class Camera:
-    def __init__(self, id=0, height=1080, width=1920, fps=30):
+    def __init__(self, id=0, height=720, width=1280, fps=30):
         self.cap = cv2.VideoCapture(id)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)

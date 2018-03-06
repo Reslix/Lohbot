@@ -14,7 +14,7 @@ from PIL import Image
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
 
-from jetson.show import imshow, show_plot
+from show import imshow, show_plot
 
 
 class SiameseConfig():
