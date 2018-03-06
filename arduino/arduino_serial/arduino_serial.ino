@@ -65,7 +65,5 @@ void loop() {
                 Serial.write('E');
                 break;
         }
-        
-
     }
 }
