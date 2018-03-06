@@ -2,6 +2,7 @@
 
 import serial
 import threading
+from threading import Thread
 
 class SerialIO():
 
@@ -12,28 +13,27 @@ class SerialIO():
         self.delay = delay
         self.running = 1
         self.buffer = 0;
-        self.lock = thread.RLock()
-        self.distances = {'left': 201,'right': 201,'left': 201} # start off with error values for distance
+        self.lock = threading.RLock()
+        self.distances = {'left': 201,'right': 201,'middle': 201} # start off with error values for distance
 
         # better than silently failing
         self.ser = serial.Serial('/dev/ttyACM0', self.baud, timeout = self.delay)
+        # wait for startup time
+        # self.ser.read()
 
     def start(self):
         # start the thread that constantly does serial reading
         # if the serial port doesn't exist the thing crashes sometimes
         Thread(target=self.update, args=()).start()
 
-    def read(self):
+    def read(self, dir):
         # returns the data structure, be sure to check lockfile
-        if self.ser:
-            return self.ser.read(1)
-        else:
-            None
+        return self.distances[dir]
         
 
     def write(self, m):
         if m not in [b'x', b'y', b'z']:
-            self.lock.aquire()
+            self.lock.acquire()
             self.buffer = m
             self.lock.release()
 
@@ -43,12 +43,15 @@ class SerialIO():
     def update(self):
         while self.running:
             # getting distances via polling now
-            self.distances['left'] = ser.write('x')
-            self.distances['middle'] = ser.write('y')
-            self.distances['right'] = ser.write('z')
+            self.ser.write(b'x')
+            self.distances['left'] = self.ser.read()
+            self.ser.write(b'y')
+            self.distances['middle'] = self.ser.read()
+            self.ser.write(b'z')
+            self.distances['right'] = self.ser.read()
 
             # do the handshakes to read, write if necessary, then delay
-            self.lock.aquire()
+            self.lock.acquire()
             if self.buffer:
                 ser.write(self.buffer) 
                 self.buffer = 0
