@@ -32,6 +32,7 @@ class SerialIO():
         
 
     def write(self, m):
+    	# Don't want to let the user poll the sensors themselves
         if m not in [b'x', b'y', b'z']:
             self.lock.acquire()
             self.buffer = m
