@@ -12,7 +12,8 @@ class SerialIO():
         self.baud = baud
         self.delay = delay
         self.running = 1
-        self.buffer = 0;
+        self.buffer = 0
+        self.check = 0
         self.lock = threading.RLock()
         self.distances = {'left': 201,'right': 201,'middle': 201} # start off with error values for distance
 
@@ -33,6 +34,12 @@ class SerialIO():
         # returns the data structure, be sure to check lockfile
         return self.distances[dir]
         
+    def check(self):
+        # Return current check (write back from arudino)
+        self.lock.acquire()
+        c = self.check
+        self.lock.release()
+        return c
 
     def write(self, m):
     	# Don't want to let the user poll the sensors themselves
@@ -58,8 +65,11 @@ class SerialIO():
             self.lock.acquire()
             if self.buffer:
                 ser.write(self.buffer) 
+                # wait for arduino to write back
+                c = self.ser.read(self.buffer)
+                self.check = c
                 self.buffer = 0
             self.lock.release() 
-           
+            
 
 
