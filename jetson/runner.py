@@ -1,3 +1,5 @@
+import time
+
 from camera import CameraRunner
 
 """
@@ -49,6 +51,8 @@ if __name__ == "__main__":
     while True:
         c.step_frame()
         center, radius = c.track_tennis_ball()
+        print('center: ' + str(center) + ' radius: ' + radius)
+        time.sleep(1)
 
     """
     c = CameraRunner()

@@ -4,6 +4,9 @@ greenLower = (29, 86, 6)
 greenUpper = (64, 255, 255)
 
 def track_tennis_ball(image):
+    """
+    :rtype: (center: (x, y), radius, image)
+    """
 
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     mask = cv2.inRange(hsv, greenLower, greenUpper)

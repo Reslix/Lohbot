@@ -27,6 +27,9 @@ class SerialIO():
         Thread(target=self.update, args=()).start()
 
     def read(self, dir):
+        """
+        dir = one of  'left', 'right', 'middle'
+        """
         # returns the data structure, be sure to check lockfile
         return self.distances[dir]
         
