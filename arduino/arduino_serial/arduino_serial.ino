@@ -63,6 +63,7 @@ void loop() {
                 break;
             default:
                 Serial.write('E');
+                move.stop();
                 break;
         }
     }
