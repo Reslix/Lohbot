@@ -23,3 +23,4 @@ int PingPing::distance_right() {
     int dist = right_ping.ping_cm();
     return dist > 0 ? dist : 201;
 }
+
