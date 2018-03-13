@@ -33,23 +33,23 @@ void loop() {
         // I know switches aren't the best...
         switch(c){
             case 's':
-                //move.stop();
+                move.stop();
                 Serial.write('s');
                 break;
             case 'f':
-                //move.forward(SPEED);
+                move.forward(SPEED);
                 Serial.write('f');
                 break;
             case 'b':
-                //move.forward(-SPEED);
+                move.forward(-SPEED);
                 Serial.write('b');
                 break;
             case 'l':
-                //move.turn(Movement::turn_dir::Left);
+                move.turn(Movement::turn_dir::Left);
                 Serial.write('l');
                 break;
             case 'r':
-                //move.turn(Movement::turn_dir::Right);
+                move.turn(Movement::turn_dir::Right);
                 Serial.write('r');
                 break;
             case 'x':
