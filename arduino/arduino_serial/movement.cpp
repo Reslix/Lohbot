@@ -8,7 +8,7 @@
 #include "movement.hpp"
 
 void Movement::turn(Movement::turn_dir dir){
-    if(dir == Left){
+    if(dir == Right){
         digitalWrite(left_forward, LOW);
         digitalWrite(left_backward, HIGH);
 
@@ -17,7 +17,7 @@ void Movement::turn(Movement::turn_dir dir){
 
         analogWrite(right_pwm, 64*SCALING);
         analogWrite(left_pwm, 48);
-    }else if (dir == Right) {
+    }else if (dir == Left) {
         digitalWrite(left_forward, HIGH);
         digitalWrite(left_backward, LOW);
 
