@@ -5,7 +5,7 @@ greenUpper = (64, 255, 255)
 
 def track_tennis_ball(image):
     """
-    :rtype: (center: (x, y), radius, image)
+    :rtype: (center: (x, y), radius: float, image: numpy.ndarray) Center is none if no ball found
     """
 
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)

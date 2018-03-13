@@ -42,6 +42,10 @@ class SerialIO():
         return c
 
     def write(self, m):
+        """
+        One of b'f', b'b', b's', b'l', b'r'
+        """
+
     	# Don't want to let the user poll the sensors themselves
         if m not in [b'x', b'y', b'z']:
             self.lock.acquire()
@@ -64,11 +68,10 @@ class SerialIO():
             # do the handshakes to read, write if necessary, then delay
             self.lock.acquire()
             if self.buffer:
-                ser.write(self.buffer) 
+                self.ser.write(self.buffer)
                 # wait for arduino to write back
-                c = self.ser.read(self.buffer)
+                c = self.ser.read(1)
                 self.check = c
-                self.buffer = 0
             self.lock.release() 
             
 

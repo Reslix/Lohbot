@@ -25,7 +25,8 @@ class Camera:
             if self.stopped:
                 return
 
-            self.success, self.image = self.cap.read()
+            self.success, image = self.cap.read()
+            self.image = cv2.flip(image, -1)
 
     def start(self):
         Thread(target=self.update, args=()).start()
@@ -58,7 +59,7 @@ class CameraRunner():
     def track_tennis_ball(self):
         center, radius, image = track_tennis_ball(self.frame)
         self.im = imshow(image, self.im)
-        return center, radius
+        return center, radius, image
 
     def step_frame(self):
 
