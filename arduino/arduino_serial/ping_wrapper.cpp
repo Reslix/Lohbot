@@ -24,3 +24,4 @@ int PingPing::distance_right() {
     return dist > 0 ? dist : 201;
 }
 
+
