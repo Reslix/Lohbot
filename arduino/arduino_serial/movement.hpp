@@ -22,7 +22,7 @@ class Movement{
 
     public:
         enum turn_dir {Right, Left, Forward, Backward};
-        void turn(Movement::turn_dir);
+        void turn(Movement::turn_dir, int);
         void forward(int);
         void stop(void);
 
