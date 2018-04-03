@@ -5,7 +5,7 @@ from flask_ask import Ask, statement, question, session
 
 
 app = Flask(__name__)
-ask = Ask(app, "/robot/")
+ask = Ask(app, "/")
 
 logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 

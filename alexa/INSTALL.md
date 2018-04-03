@@ -22,9 +22,8 @@ How to set up flask-ask running locally
             ssl_certificate /home/nvidia/certificate.pem;
             ssl_certificate_key /home/nvidia/private-key.pem;
 
-            location /robot/ {
-                rewrite ^/robot(/.*)$ $1 break;
-                proxy_pass https://127.0.0.1:34443;
+            location ~/robot(.*)$ {
+                proxy_pass https://127.0.0.1:34443$1;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
