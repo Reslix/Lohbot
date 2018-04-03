@@ -30,6 +30,14 @@ How to set up flask-ask running locally
                 proxy_set_header X-Forwarded-Proto https;
                 proxy_redirect    off;
             }
+            location ~/memory-game(.*)$ {
+                proxy_pass https://127.0.0.1:11577$1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto https;
+                proxy_redirect    off;
+            }
         }
 
 1. Restart nginx: `sudo systemctl restart nginx`
@@ -44,7 +52,9 @@ How to set up flask-ask running locally
 ## Set up service on Jetson
 
 1. Start virualenv: `pipenv shell`
-1. Start the web server: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:34443 myapp:app`. Ctrl+C will terminate it.
+1. Start a server to listen to robot control commands: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:34443 myapp:app`. Ctrl+C will terminate it.
+1. Open a new terminal and start virtualenv: `pipenv shell`
+1. Start a server to listen run the memory game: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:11577 --chdir ./memory_game/ memory_game:app`. Ctrl+C will terminate it.
 1. To exit the shell, deactivate virtualenv with `exit`
 
 ## Resources
