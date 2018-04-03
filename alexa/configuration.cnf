@@ -16,4 +16,4 @@ extendedKeyUsage = serverAuth
 subjectAltName = @subject_alternate_names
 
 [subject_alternate_names]
-IP.1 =129.2.183.216
+DNS.1=408i.duckdns.org
