@@ -8,7 +8,7 @@ C = US
 ST = MD
 L = College Park
 O = University of Maryland
-CN = Memory Game Skill
+CN = An Alexa Skill
 
 [v3_req]
 keyUsage = keyEncipherment, dataEncipherment
@@ -16,4 +16,4 @@ extendedKeyUsage = serverAuth
 subjectAltName = @subject_alternate_names
 
 [subject_alternate_names]
-DNS.1 = *.us-east-2.compute.amazonaws.com
+IP.1 =129.2.183.216

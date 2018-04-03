@@ -7,7 +7,7 @@
 #include "Arduino.h"
 #include "movement.hpp"
 
-void Movement::turn(Movement::turn_dir dir){
+void Movement::turn(Movement::turn_dir dir, int speed){
     if(dir == Right){
         digitalWrite(left_forward, LOW);
         digitalWrite(left_backward, HIGH);
@@ -15,8 +15,9 @@ void Movement::turn(Movement::turn_dir dir){
         digitalWrite(right_forward, HIGH);
         digitalWrite(right_backward, LOW);
 
-        analogWrite(right_pwm, 64*SCALING);
-        analogWrite(left_pwm, 48);
+        analogWrite(right_pwm, speed*SCALING);
+        analogWrite(left_pwm, (speed*3)>>2); // Scaling factor between forward and back ~ 3/4,
+                                             // So dividing by 4
     }else if (dir == Left) {
         digitalWrite(left_forward, HIGH);
         digitalWrite(left_backward, LOW);
@@ -24,8 +25,8 @@ void Movement::turn(Movement::turn_dir dir){
         digitalWrite(right_forward, LOW);
         digitalWrite(right_backward, HIGH);
 
-        analogWrite(right_pwm, 48*SCALING);
-        analogWrite(left_pwm, 64);
+        analogWrite(right_pwm, (speed)*SCALING);
+        analogWrite(left_pwm, (speed*3)>>2);
     }
 }
 
