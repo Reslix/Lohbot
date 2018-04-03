@@ -15,15 +15,21 @@ How to set up flask-ask running locally
 1. Install nginx: `sudo apt install nginx`
 1. Add a user `sudo adduser flaskapp`
 1. In `sudo vim /etc/nginx/nginx.conf`, Change `user  www-data;` to `user  flaskapp`. In the http block, uncomment this line: `server_names_hash_bucket_size 64;` and change `64` to `128`
-1. In `sudo vi /etc/nginx/conf.d/virtual.conf`, add:
+1. In `sudo vim /etc/nginx/conf.d/virtual.conf`, add:
 
         server {
             listen 443 ssl;
             ssl_certificate /home/nvidia/certificate.pem;
             ssl_certificate_key /home/nvidia/private-key.pem;
 
-            location / {
+            location /robot/ {
+                rewrite ^/robot(/.*)$ $1 break;
                 proxy_pass https://127.0.0.1:34443;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto https;
+                proxy_redirect    off;
             }
         }
 
@@ -33,7 +39,7 @@ How to set up flask-ask running locally
 
 1. Edit configuration.cnf. Change the IP address.
 1. Create a private key: `openssl genrsa -out private-key.pem 2048`
-1. Generate a private key `openssl req -new -x509 -days 365 -key private-key.pem -config configuration.cnf -out certificate.pem`
+1. Generate a private key and public key `openssl req -new -x509 -days 365 -key private-key.pem -config configuration.cnf -out certificate.pem`
 1. Upload certificate.pem to the Alexa skill under Endpoint > Default Region > Upload self-signed certificate.
 
 ## Set up service on Jetson
