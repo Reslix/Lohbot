@@ -54,8 +54,8 @@ How to set up flask-ask running locally
 1. Start virualenv: `pipenv shell`
 1. Start a server to listen to robot control commands: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:34443 myapp:app`. Ctrl+C will terminate it.
 1. Open a new terminal and start virtualenv: `pipenv shell`
-1. Start a server to listen run the memory game: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:11577 --chdir ./memory_game/ memory_game:app`. Ctrl+C will terminate it.
-1. To exit the shell, deactivate virtualenv with `exit`
+1. Start a server to listen run the memory game: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:11577 memory_game.memory_game:app`. Ctrl+C will terminate it.
+1. To exit virtualenv and return to plain shell, use `exit`
 
 ## Resources
 
