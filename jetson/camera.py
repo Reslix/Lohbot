@@ -26,7 +26,7 @@ class Camera:
                 return
 
             self.success, image = self.cap.read()
-            self.image = cv2.flip(image, -1)
+            self.image = image
 
     def start(self):
         Thread(target=self.update, args=()).start()

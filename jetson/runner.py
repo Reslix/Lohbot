@@ -60,7 +60,7 @@ if __name__ == "__main__":
     ard = SerialIO()
     ard.start()
 
-    c = CameraRunner(1)
+    c = CameraRunner(0)
     while True:
         c.step_frame()
         center, radius, image = c.track_tennis_ball()
