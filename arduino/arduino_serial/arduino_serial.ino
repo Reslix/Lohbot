@@ -3,7 +3,7 @@
  * Moves, avoiding obstacles
  */
 
-#define DEBUG
+#define DEBUG 0
 
 #include "movement.hpp"
 #include "ping_wrapper.hpp"
