@@ -23,7 +23,7 @@ class SerialIO():
     def right(self, speed = 48):
         self.write(b'r', bytes([speed]))
 
-    def forward(self):
+    def stop(self):
         self.write(b's')
 
     def __init__(self, com=None, baud=9600, delay=10):

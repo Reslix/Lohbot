@@ -74,34 +74,34 @@ if __name__ == "__main__":
             print('center: ' + str(center) + ' radius: ' + str(radius))
             if center[0] > width*right_threshold:
                 print('Turn right')
-                ard.write(b'r')
+                ard.right()
                 time.sleep(0.5)
                 print('And stopping')
-                ard.write(b's')
+                ard.stop()
 
             elif center[0] < width*left_threshold:
                 print('Turn left')
-                ard.write(b'l')
+                ard.left()
                 time.sleep(0.5)
                 print('And stopping')
-                ard.write(b's')
+                ard.stop()
 
             else:
                 if (radius < ball_radius_min):
                     print('Move forward')
-                    ard.write(b'f')
+                    ard.forward()
 
                 elif (radius > ball_radius_max):
                     print('Move backwards')
-                    ard.write(b'b')
+                    ard.backward()
 
                 else:
                     print('Not moving')
-                    ard.write(b's')
+                    ard.stop()
 
         else:
             print("No ball found")
-            ard.write(b's')
+            ard.stop()
 
         time.sleep(0.5)
 
