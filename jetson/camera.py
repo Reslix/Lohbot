@@ -3,6 +3,7 @@ from threading import Thread
 import cv2
 
 from balltrack import track_tennis_ball
+from person import PersonDetector
 from show import imshow
 
 from facial import Faces
@@ -40,7 +41,45 @@ class Camera:
         self.cap.release()
 
 
-class CameraRunner():
+class EnetCameraRunner():
+    """
+    Segments
+    """
+    pass
+
+
+class PersonCameraRunner():
+    """
+    Identify human shaped things using
+    """
+
+    def __init__(self, camera=0):
+        self.camera = Camera(camera)
+        self.camera.start()
+        self.frame = None
+        self.im = None
+        self.detector = PersonDetector()
+
+    def step_frame(self):
+        ret, frame = self.camera.read_rgb()
+        if ret is True:
+            self.frame = frame
+
+    def track_people(self):
+        """
+        We obtain the bounding boxes of all the people in the scene and update their positions.
+        We do this by tracking the location of the centers of their boxes and comparing them with the locations of the
+        previous frame with a small prediction.
+        We have a vector of the x and y coordinates of the old and new centers.
+        :return:
+        """
+
+
+class FaceCameraRunner():
+    """
+    Deprecated, facial recognition is not a priority atm
+    """
+
     def __init__(self, camera=0):
         self.faces = Faces()
         self.camera = Camera(camera)
@@ -77,13 +116,13 @@ class CameraRunner():
         self.faces.single_face_capture(name)
 
     def prepare_face_capture(self, i):
-        #note, face detection takes up 45% of the runtime of this function
+        # note, face detection takes up 45% of the runtime of this function
         image = self.faces.detect_in_current_frame(self.frame)
         for face in self.faces.detected_faces:
             cv2.putText(image, "Prepare for Capture " + str(delay - i), (face.bounds[0], face.bounds[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0),
                         2, cv2.LINE_AA)
-        #note, this part takes up 45% of the runtime of the function
+        # note, this part takes up 45% of the runtime of the function
         self.im = imshow(image, im=self.im)
 
     def face_recog(self):
