@@ -3,7 +3,6 @@
  * Moves, avoiding obstacles
  */
 
-#define DEBUG 0
 
 #include "movement.hpp"
 #include "ping_wrapper.hpp"
@@ -11,6 +10,8 @@
 
 Movement move;
 PingPing ping;
+
+#define DEBUG
 
 int MIN_DIST = 30;
 int SPEED = 48;
@@ -56,7 +57,7 @@ void loop() {
                 #ifndef DEBUG
                 move.forward(c);
                 #endif
-                Serial.write('b');
+                Serial.write(c);
                 break;
             case 'l':
                 c = Serial.read(); //Error checking later

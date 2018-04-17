@@ -6,6 +6,7 @@ import time
 ser = serial.Serial('/dev/ttyACM0', 9600)
 print(ser.name)
 commands = [b's', b'f', b'b', b'l', b'r', b'x', b'y', b'z']
+ser.start()
 print("start up {}".format(ser.read(1)))
 for c in commands:
     if c == b'f':

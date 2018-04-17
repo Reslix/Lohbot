@@ -11,20 +11,25 @@ class SerialIO():
     # would be too enterprise for us
 
     def forward(self, speed = 48):
-        self.write(b'f', bytes([speed]))
+        self.write(b'f')
+        self.write(bytes([speed]))
 
                 
     def backward(self, speed = 48):
-        self.write(b'b', bytes([speed]))
+        self.write(b'b')
+        self.write(bytes([speed]))
 
     def left(self, speed = 48):
-        self.write(b'l', bytes([speed]))
+        self.write(b'l')
+        self.write(bytes([speed]))
 
     def right(self, speed = 48):
-        self.write(b'r', bytes([speed]))
+        self.write(b'r')
+        self.write(bytes([speed]))
 
     def stop(self):
         self.write(b's')
+
 
     def __init__(self, com=None, baud=9600, delay=10):
         # initialize data structure to keep shizz
@@ -60,7 +65,7 @@ class SerialIO():
         self.lock.acquire()
         c = self.check
         self.lock.release()
-        return c
+        return c[0]
 
     def write(self, m, speed = 48):
         """
