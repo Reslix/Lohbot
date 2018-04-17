@@ -1,6 +1,7 @@
 from threading import Thread
 
 import cv2
+import pickle
 
 from balltrack import track_tennis_ball
 from person import PersonDetector
@@ -20,6 +21,8 @@ class Camera:
 
         self.success, self.image = self.cap.read()
         self.stopped = False
+        self.calib = pickle.load('calibration.pickle')
+        self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
 
     def update(self):
         while True:
@@ -35,6 +38,9 @@ class Camera:
     def read_rgb(self):
         image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         return self.success, image
+
+    def undistort(self,image):
+        return cv2.undistort(image, self.calib[1])
 
     def release(self):
         self.stopped = True
@@ -65,6 +71,12 @@ class PersonCameraRunner():
         if ret is True:
             self.frame = frame
 
+    def step_imshow_frame(self):
+        rects,image = self.detector.detect_person(undistort(self.frame))
+        for (x,y,w,h) in rects:
+            cv2.rectangle(image, (x, y), ( w, h), (0, 255, 255), 2)
+        self.im = imshow(image, im=self.im)
+
     def track_people(self):
         """
         We obtain the bounding boxes of all the people in the scene and update their positions.
@@ -73,6 +85,7 @@ class PersonCameraRunner():
         We have a vector of the x and y coordinates of the old and new centers.
         :return:
         """
+        pass
 
 
 class FaceCameraRunner():
