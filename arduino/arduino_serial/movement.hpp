@@ -26,6 +26,8 @@ class Movement{
         void forward(int);
         void stop(void);
 
+        void direct(int, int, int);
+
         Movement(){
             left_forward = 8;
             left_backward = 9;
