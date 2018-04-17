@@ -11,27 +11,22 @@ class SerialIO():
     # would be too enterprise for us
 
     def forward(self, speed = 48):
-        self.write(b'f')
-        self.write(bytes([speed]))
-
+        self.write(b'f', bytes([speed]))
                 
     def backward(self, speed = 48):
-        self.write(b'b')
-        self.write(bytes([speed]))
+        self.write(b'b', bytes([speed]))
 
     def left(self, speed = 48):
-        self.write(b'l')
-        self.write(bytes([speed]))
+        self.write(b'l', bytes([speed]))
 
     def right(self, speed = 48):
-        self.write(b'r')
-        self.write(bytes([speed]))
+        self.write(b'r', bytes([speed]))
 
     def stop(self):
         self.write(b's')
 
 
-    def __init__(self, com=None, baud=9600, delay=10):
+    def __init__(self, com=None, baud=115200, delay=10):
         # initialize data structure to keep shizz
         # put lockfile, write buffer
         self.baud = baud
@@ -44,9 +39,15 @@ class SerialIO():
         self.distances = {'left': 201,'right': 201,'middle': 201} # start off with error values for distance
 
         # better than silently failing
-        self.ser = serial.Serial('/dev/ttyACM0', self.baud, timeout = self.delay)
+        self.ser = serial.Serial('/dev/ttyACM1', self.baud, timeout = self.delay)
         # wait for startup time
-        # self.ser.read()
+        # Toggle DTR to reset Arduino
+        self.ser.setDTR(False)
+        # toss any data already received, see
+        # http://pyserial.sourceforge.net/pyserial_api.html#serial.Serial.flushInput
+        self.ser.flushInput()
+        self.ser.setDTR(True)
+        print(self.ser.read())
 
     def start(self):
         # start the thread that constantly does serial reading
@@ -60,12 +61,12 @@ class SerialIO():
         # returns the data structure, be sure to check lockfile
         return self.distances[dir]
         
-    def check(self):
+    def check_return(self):
         # Return current check (write back from arudino)
         self.lock.acquire()
         c = self.check
         self.lock.release()
-        return c[0]
+        return c
 
     def write(self, m, speed = 48):
         """
@@ -86,19 +87,25 @@ class SerialIO():
     def update(self):
         while self.running:
             # getting distances via polling now
+            # or not because reasons
+            '''
             self.ser.write(b'x')
             self.distances['left'] = self.ser.read()
             self.ser.write(b'y')
             self.distances['middle'] = self.ser.read()
             self.ser.write(b'z')
             self.distances['right'] = self.ser.read()
+            '''
 
             # do the handshakes to read, write if necessary, then delay
             self.lock.acquire()
             if self.buffer[0]:
                 # Write command then speed
                 self.ser.write(self.buffer[0])
-                self.ser.write(self.buffer[1])
+                # print('writing: {}'.format(self.buffer[0]))
+                if self.buffer[0] in [b'f', b'b', b'l', b'r']:
+                    self.ser.write(self.buffer[1])
+                    # print('also writing: {}'.format(self.buffer[1][0]))
                 # wait for arduino to write back
                 c = self.ser.read(1)
                 self.check = c

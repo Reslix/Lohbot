@@ -11,10 +11,9 @@
 Movement move;
 PingPing ping;
 
-#define DEBUG
 
 int MIN_DIST = 30;
-int SPEED = 48;
+int SPEED = 60;
 int sample = 10;
 
 
@@ -27,7 +26,7 @@ void setup() {
   randomSeed(analogRead(0));
   #endif
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.flush();
   Serial.write('S');
   
@@ -36,6 +35,7 @@ void setup() {
 void loop() {
     char c;
     if (Serial.available() > 0){
+        
         c = Serial.read();
         // I know switches aren't the best...
         switch(c){
@@ -46,13 +46,15 @@ void loop() {
                 #endif
                 break;
             case 'f':
-                c = Serial.read(); //Error checking later
+                while(!Serial.available()); // so we can read the next byte
+                c = Serial.read();
                 #ifndef DEBUG
                 move.forward(c);
                 #endif
                 Serial.write(c);
                 break;
             case 'b':
+                while(!Serial.available()); // so we can read the next byte
                 c = Serial.read(); //Error checking later
                 #ifndef DEBUG
                 move.forward(c);
@@ -60,6 +62,7 @@ void loop() {
                 Serial.write(c);
                 break;
             case 'l':
+                while(!Serial.available()); // so we can read the next byte
                 c = Serial.read(); //Error checking later
                 #ifndef DEBUG
                 move.turn(Movement::turn_dir::Left, c);
@@ -67,6 +70,7 @@ void loop() {
                 Serial.write(c);
                 break;
             case 'r':
+                while(!Serial.available()); // so we can read the next byte
                 c = Serial.read(); //Error checking later
                 #ifndef DEBUG
                 move.turn(Movement::turn_dir::Right, c);
@@ -90,12 +94,23 @@ void loop() {
             case 'z':
                 #ifdef DEBUG
                 Serial.write(random(0, 150));
-                #else
+                #elses
                 Serial.write(ping.distance_right());
                 #endif
                 break;
+            case 'd': // direct write
+                while(!Serial.available());
+                char dirs = Serial.read();
+                while(!Serial.available());
+                char speed_l = Serial.read();
+                while(!Serial.available());
+                char speed_r = Serial.read();
+                
+                move.direct(dirs, speed_l, speed_r);
+                Serial.write(dirs^speed_l^speed_r); // 'hashing'
+                break;
             default:
-                Serial.write('E');
+                Serial.write(c);
                 move.stop();
                 break;
         }
