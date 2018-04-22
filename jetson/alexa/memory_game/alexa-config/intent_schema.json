@@ -5,23 +5,36 @@
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
-                    "samples": []
+                    "samples": [
+                        "cancel"
+                    ]
                 },
                 {
                     "name": "AMAZON.NoIntent",
-                    "samples": []
+                    "samples": [
+                        "no"
+                    ]
                 },
                 {
                     "name": "AMAZON.YesIntent",
-                    "samples": []
+                    "samples": [
+                        "yes"
+                    ]
                 },
                 {
                     "name": "AMAZON.StopIntent",
-                    "samples": []
+                    "samples": [
+                        "stop"
+                    ]
                 },
                 {
                     "name": "AMAZON.StartOverIntent",
-                    "samples": []
+                    "samples": [
+                        "restart the game",
+                        "restart",
+                        "start the game over",
+                        "start over"
+                    ]
                 }
             ],
             "types": []
