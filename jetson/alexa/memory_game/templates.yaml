@@ -1,5 +1,5 @@
 
-welcome: Welcome to memory game. I'm going to say a word, and you can tell me if you've heard it before.
+welcome: Welcome to memory game. I'm going to say a word, and you tell me if you've heard it before.
 
 win: Oh, wow! You've gone through all {{ count }} of the words I've got.
 

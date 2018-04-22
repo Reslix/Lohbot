@@ -13,7 +13,7 @@ Alexa will say a word, and you (the user) respond if you've heard it before or n
 
 Flask session attributes:
 words_to_say -- list of words to say, randomized for each session
-words_said_count -- number of words in words_to_say that have been spoken (0:words_said_count)
+words_already_said -- list of words already said
 this_word -- previous word spoken
 """
 
@@ -43,7 +43,7 @@ def new_game():
     random.shuffle(words_to_say)
     # print(words_to_say)
     session.attributes['words_to_say'] = words_to_say
-    session.attributes['words_said_count'] = 0
+    session.attributes['words_already_said'] = []
 
     welcome_msg = render_template('welcome')
     return question(welcome_msg)
@@ -65,31 +65,30 @@ def next_round(user_said_yes):
     user_said_yes -- False if user said No, True if user said Yes
     """
 
-    words_said = session.attributes['words_said_count']
+    words_said_count = len(session.attributes['words_already_said'])
     words_to_say_count = len(session.attributes['words_to_say'])
 
     # Check if user said correct yes/no response
-    if words_said > 0:
-        already_said = session.attributes['this_word'] in session.attributes['words_to_say'][0:words_said]
+    if words_said_count > 0:
+        already_said = session.attributes['this_word'] in session.attributes['words_already_said']
         if (already_said and not user_said_yes) or (not already_said and user_said_yes):
-            msg = render_template('lose', count=words_said)
+            msg = render_template('lose', count=words_said_count - 1)
             return statement(msg)
 
     # Check if we've gone through all the words
-    if words_said == words_to_say_count:
-        msg = render_template('win', count=words_to_say_count)
+    if words_to_say_count == 0:
+        msg = render_template('win', count=words_said_count)
         return statement(msg)
 
     # Say next word
     r = random.randint(0, 2) # 0 or 1
-    if not r or words_said == 0 or words_said == words_to_say_count:
+    if not r or words_said_count == 0:
         # Say word not heard before
-        word = session.attributes['words_to_say'][words_said]
-        session.attributes['words_said_count'] = words_said + 1
+        word = session.attributes['words_to_say'].pop([0])
+        session.attributes['words_already_said'].insert(0, word)
     else:
         # Say word heard before
-        r = random.randint(0, words_said)
-        word = session.attributes['words_to_say'][r]
+        word = random.sample(session.attributes['words_already_said'], 1)[0]
     session.attributes['this_word'] = word
     return question(word)
 
@@ -101,15 +100,15 @@ def start_over():
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
-    words_said = session.attributes['words_said_count']
-    bye_msg = render_template('bye', count=words_said)
+    words_said_count = len(session.attributes['words_already_said'])
+    bye_msg = render_template('bye', count=words_said_count)
     return statement(bye_msg)
 
 
 @ask.intent('AMAZON.CancelIntent')
 def cancel():
-    words_said = session.attributes['words_said_count']
-    bye_msg = render_template('bye', count=words_said)
+    words_said_count = len(session.attributes['words_already_said'])
+    bye_msg = render_template('bye', count=words_said_count)
     return statement(bye_msg)
 
 
