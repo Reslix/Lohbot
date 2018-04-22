@@ -13,7 +13,7 @@ Alexa will say a word, and you (the user) respond if you've heard it before or n
 
 Flask session attributes:
 words_to_say -- list of words to say, randomized for each session
-words_already_said -- list of words already said
+words_already_said -- list of words already said (check for duplicates before adding)
 this_word -- previous word spoken
 """
 
@@ -27,7 +27,8 @@ logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 def new_game():
     """Starts memory game.
 
-    Generates words_to_say from JSON file of categories.
+    Generates words_to_say from JSON file of categories
+    (selects half the words in each category).
     """
 
     words_to_say = []
@@ -37,7 +38,8 @@ def new_game():
     wordlist = data["wordlist"]
     for category in wordlist:
         words_in_category = category["words"]
-        words_to_say.extend(words_in_category)
+        length = int(math.ceil(len(words_in_category)/2.0))
+        words_to_say.extend(random.sample(words_in_category, length))
 
     # Randomize order of words
     random.shuffle(words_to_say)
@@ -69,12 +71,16 @@ def next_round(user_said_yes):
     words_to_say_count = len(session.attributes['words_to_say'])
 
     # Check if user said correct yes/no response
-    if words_said_count > 0:
+    if 'this_word' in session.attributes:
         already_said = session.attributes['this_word'] in session.attributes['words_already_said']
         if (already_said and not user_said_yes) or (not already_said and user_said_yes):
             msg = render_template('lose', count=words_said_count - 1)
             return statement(msg)
+        # User answered correctly; add to list of words already said
+        if session.attributes['this_word'] not in session.attributes['words_already_said']:
+            session.attributes['words_already_said'].insert(0, session.attributes['this_word'])
 
+    words_said_count = len(session.attributes['words_already_said'])
     # Check if we've gone through all the words
     if words_to_say_count == 0:
         msg = render_template('win', count=words_said_count)
@@ -82,10 +88,9 @@ def next_round(user_said_yes):
 
     # Say next word
     r = random.randint(0, 2) # 0 or 1
-    if not r or words_said_count == 0:
+    if r == 0 or words_said_count == 0:
         # Say word not heard before
-        word = session.attributes['words_to_say'].pop([0])
-        session.attributes['words_already_said'].insert(0, word)
+        word = session.attributes['words_to_say'].pop()
     else:
         # Say word heard before
         word = random.sample(session.attributes['words_already_said'], 1)[0]
