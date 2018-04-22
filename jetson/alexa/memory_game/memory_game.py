@@ -72,7 +72,7 @@ def next_round(user_said_yes):
     if words_said > 0:
         already_said = session.attributes['this_word'] in session.attributes['words_to_say'][0:words_said]
         if (already_said and not user_said_yes) or (not already_said and user_said_yes):
-            msg = render_template('lose', count=words_to_say_count)
+            msg = render_template('lose', count=words_said)
             return statement(msg)
 
     # Check if we've gone through all the words
@@ -101,15 +101,15 @@ def start_over():
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
-    words_to_say_count = len(session.attributes['words_to_say']) - 1
-    bye_msg = render_template('bye', count=words_to_say_count)
+    words_said = session.attributes['words_said_count']
+    bye_msg = render_template('bye', count=words_said)
     return statement(bye_msg)
 
 
 @ask.intent('AMAZON.CancelIntent')
 def cancel():
-    words_to_say_count = len(session.attributes['words_to_say']) - 1
-    bye_msg = render_template('bye', count=words_to_say_count)
+    words_said = session.attributes['words_said_count']
+    bye_msg = render_template('bye', count=words_said)
     return statement(bye_msg)
 
 
