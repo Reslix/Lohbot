@@ -22,6 +22,22 @@ class SerialIO():
     def right(self, speed = 48):
         self.write(b'r', bytes([speed]))
 
+    # Direct drive the motors, 
+    # left and right are the speeds of the motors
+    # and are in the range [-255, 255] and are integers
+    def direct(self, left = 48, right = 48):
+        # decode the directions based off the sign of the inputs
+        dirs = 0
+        dirs += (left >= 0) 
+        dirs += (right >= 0) << 1
+
+        # arduino no like negative numbers
+        if left < 0:
+            left *= -1
+        if right < 0:
+            right *= -1
+
+        self.lock.
     def stop(self):
         self.write(b's')
 
@@ -33,7 +49,7 @@ class SerialIO():
         self.delay = delay
         self.running = 1
         # buffer is [command, speed]
-        self.buffer = [0, 0]
+        self.buffer = [0, 0, 0, 0]
         self.check = 0
         self.lock = threading.RLock()
         self.distances = {'left': 201,'right': 201,'middle': 201} # start off with error values for distance
