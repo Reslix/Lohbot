@@ -60,7 +60,7 @@ void Movement::stop(){
 // bit 0 (dirs & 1) is the left, bit 1 (dirs & 1<<1) is the right
 // 1 is forward, 0 is reverse
 void Movement::direct(int dirs, int left, int right){
-  digitalWrite(left_forwarrd, dirs & 1);
+  digitalWrite(left_forward, dirs & 1);
   digitalWrite(left_backward, !(dirs & 1));
 
   digitalWrite(right_forward, dirs & 2);
