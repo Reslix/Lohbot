@@ -4,6 +4,8 @@ import serial
 import threading
 from threading import Thread
 
+from glob import glob
+
 class SerialIO():
 
     # methods we should call to move the robot around
@@ -61,7 +63,10 @@ class SerialIO():
         self.distances = {'left': 201,'right': 201,'middle': 201} # start off with error values for distance
 
         # better than silently failing
-        self.ser = serial.Serial('/dev/ttyACM1', self.baud, timeout = self.delay)
+        # Also jenk AF way to find current port arduino connected to but 
+        # ¯\_(ツ)_/¯
+        port = glob('/dev/ttyACM*')[0]
+        self.ser = serial.Serial(port, self.baud, timeout = self.delay)
         # wait for startup time
         # Toggle DTR to reset Arduino
         self.ser.setDTR(False)
