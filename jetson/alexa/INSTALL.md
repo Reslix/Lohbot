@@ -4,8 +4,9 @@ How to set up flask-ask running locally
 
 ## Install python and set up virtualenv on Jetson
 
+1. Open a terminal in the folder where Pipfile.lock is (jetson/alexa).
 1. Install Python: `sudo apt-get install python`
-1. Install dependencies for cryptography module: `sudo apt-get install build-essential libssl-dev libffi-dev python-dev`
+1. Install dependencies for cryptography module: `sudo apt-get install build-essential libssl-dev libffi-dev python-dev python3-pip`
 1. Install pipenv for all users: `sudo -H pip3 install -U pipenv`
 1. Install Python packages to this virtualenv: `pipenv install`
 
