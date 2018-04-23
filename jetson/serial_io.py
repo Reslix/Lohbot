@@ -37,7 +37,13 @@ class SerialIO():
         if right < 0:
             right *= -1
 
-        self.lock.
+        self.lock.acquire()
+        self.buffer[0] = b'd'
+        self.buffer[1] = bytes([dirs])
+        self.buffer[2] = bytes([left])
+        self.buffer[3] = bytes([right])
+        self.lock.release()
+
     def stop(self):
         self.write(b's')
 
@@ -123,6 +129,10 @@ class SerialIO():
                     self.ser.write(self.buffer[1])
                     # print('also writing: {}'.format(self.buffer[1][0]))
                 # wait for arduino to write back
+                if self.buffer[0] == b'd':
+                    self.ser.write(self.buffer[1])
+                    self.ser.write(self.buffer[3])
+                    self.ser.write(self.buffer[3])
                 c = self.ser.read(1)
                 self.check = c
                 # jenky way to check if message in buffer
