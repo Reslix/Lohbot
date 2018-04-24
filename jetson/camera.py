@@ -21,9 +21,10 @@ class Camera:
 
         self.success, self.image = self.cap.read()
         self.stopped = False
+        '''
         self.calib = pickle.load('calibration.pickle')
         self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
-
+        '''
     def update(self):
         while True:
             if self.stopped:
