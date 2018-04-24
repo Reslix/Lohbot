@@ -105,9 +105,7 @@ def start_over():
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
-    words_said_count = len(session.attributes['words_already_said'])
-    bye_msg = render_template('bye', count=words_said_count)
-    return statement(bye_msg)
+    return cancel()
 
 
 @ask.intent('AMAZON.CancelIntent')
