@@ -74,7 +74,7 @@ def next_round(user_said_yes):
     if 'this_word' in session.attributes:
         already_said = session.attributes['this_word'] in session.attributes['words_already_said']
         if (already_said and not user_said_yes) or (not already_said and user_said_yes):
-            msg = render_template('lose', count=words_said_count - 1)
+            msg = render_template('lose', count=words_said_count)
             return statement(msg)
         # User answered correctly; add to list of words already said
         if session.attributes['this_word'] not in session.attributes['words_already_said']:
