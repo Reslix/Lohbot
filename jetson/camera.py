@@ -5,7 +5,6 @@ import cv2
 from balltrack import track_tennis_ball
 from show import imshow
 
-import object_detector.detector as detector
 
 delay = 30
 
@@ -116,14 +115,21 @@ class TrackingCameraRunner():
         if ret is True:
             self.frame = frame
 
-    def track_face(self, i, name):
+    def track_face(self):
         image = self.frame.copy()
         if self.tracking:
-            tracking, face = self.tracker.update()
+            tracking, face = self.tracker.update(image)
+            face = [int(i) for i in face]
+            self.tracking = tracking
+            print('tracking')
         else:
             rects = self.detect_faces()
             rects = sorted(rects, key=lambda x: x[2]*x[3], reverse=True)
-            face = rects[0]
+            face = rects[0] if len(rects) else None
+            if face is not None:
+                self.tracker.init(image, face)
+                self.tracking = True
+            print('detecting')
 
         return face, image
 
