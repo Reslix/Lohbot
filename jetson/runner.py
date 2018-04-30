@@ -62,14 +62,25 @@ if __name__ == "__main__":
 
     c = TrackingCameraRunner(0)
     im = None
+    tcenterx = 640
+    tsize = 160
     while True:
         c.step_frame()
         rect, image = c.track_face()
-        cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 255), 2)
-        im = imshow(image, im=im)
+        if rect is not None:
+            cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 255), 2)
+            im = imshow(image, im=im)
 
-        center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
-        size = math.sqrt(rect[2]**2+rect[3]**2)
+            center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
+            size = math.sqrt(rect[2]**2+rect[3]**2)
+
+            differential = (tcenterx - center[0]) // 3
+            distance = tsize - size
+            left = distance + differential
+            right = distance - differential
+            ard.direct(int(left), int(right))
+        else:
+            ard.stop()
 
         """
         center, radius, image = c.track_tennis_ball()
