@@ -60,7 +60,7 @@ if __name__ == "__main__":
     ard = SerialIO()
     ard.start()
 
-    c = TrackingCameraRunner(0)
+    c = TrackingCameraRunner(1)
     im = None
     tcenterx = 640
     tsize = 160
@@ -81,6 +81,8 @@ if __name__ == "__main__":
             ard.direct(int(left), int(right))
         else:
             ard.stop()
+            im = imshow(image, im=im)
+
 
         """
         center, radius, image = c.track_tennis_ball()
