@@ -39,6 +39,11 @@ class SerialIO():
         if right < 0:
             right *= -1
 
+        if left > 255:
+            left = 255
+        if right > 255:
+            right = 255
+
         self.lock.acquire()
         self.buffer[0] = b'd'
         self.buffer[1] = bytes([dirs])
