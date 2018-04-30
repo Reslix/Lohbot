@@ -127,8 +127,10 @@ class TrackingCameraRunner():
             rects = sorted(rects, key=lambda x: x[2]*x[3], reverse=True)
             face = rects[0] if len(rects) else None
             if face is not None:
+                self.tracker = cv2.TrackerKCF_create()
                 self.tracker.init(image, face)
                 self.tracking = True
+                print('reinitializing')
             print('detecting')
 
         return face, image
