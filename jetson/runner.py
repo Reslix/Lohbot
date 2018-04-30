@@ -1,7 +1,9 @@
 import math, time
 
 from serial_io import SerialIO
-from camera import CameraRunner
+from camera import TrackingCameraRunner
+from show import imshow
+import cv2
 
 """
 The object structure will be as follows: 
@@ -29,8 +31,6 @@ The object structure will be as follows:
     
 """
 
-
-delay = 30
 
 # (0, 0) is top left
 # If ball if past left_threshold (perentage of camera screen), move left. Between 0 and 1.
@@ -60,9 +60,18 @@ if __name__ == "__main__":
     ard = SerialIO()
     ard.start()
 
-    c = CameraRunner(0)
+    c = TrackingCameraRunner(0)
+    im = None
     while True:
         c.step_frame()
+        rect, image = c.track_face()
+        cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 255), 2)
+        im = imshow(image, im=im)
+
+        center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
+        size = math.sqrt(rect[2]**2+rect[3]**2)
+
+        """
         center, radius, image = c.track_tennis_ball()
         # print(str(image.shape[0]))
         height = image.shape[0]
@@ -104,30 +113,6 @@ if __name__ == "__main__":
             ard.stop()
 
         time.sleep(0.5)
+        """
 
-
-    """
-    c = CameraRunner()
-    print(args)
-    if args.n is None:
-        for i in range(delay):
-            c.step_frame()
-            c.prepare_face_capture(i)
-
-        while True:
-            c.step_frame()
-            c.face_recog()
-
-    if args.n is not None:
-        for i in range(delay):
-            c.step_frame()
-            c.prepare_face_capture(i)
-
-        for i in range(args.frames):
-            c.step_frame()
-            c.capture(i, args.n)
-
-        c.close()
-        
-    """
 

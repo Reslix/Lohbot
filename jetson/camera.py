@@ -1,15 +1,15 @@
 from threading import Thread
 
 import cv2
-import pickle
 
 from balltrack import track_tennis_ball
-from person import PersonDetector
 from show import imshow
 
-from facial import Faces
+import object_detector.detector as detector
 
 delay = 30
+
+face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
 
 
 class Camera:
@@ -21,8 +21,8 @@ class Camera:
 
         self.success, self.image = self.cap.read()
         self.stopped = False
-        self.calib = pickle.load('calibration.pickle')
-        self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
+        #self.calib = pickle.load('calibration.pickle')
+        #self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
 
     def update(self):
         while True:
@@ -64,7 +64,7 @@ class PersonCameraRunner():
         self.camera.start()
         self.frame = None
         self.im = None
-        self.detector = PersonDetector()
+        self.detector = detector.detector
 
     def step_frame(self):
         ret, frame = self.camera.read_rgb()
@@ -72,7 +72,7 @@ class PersonCameraRunner():
             self.frame = frame
 
     def step_imshow_frame(self):
-        rects,image = self.detector.detect_person(undistort(self.frame))
+        rects, image = self.detector(self.frame)
         for (x,y,w,h) in rects:
             cv2.rectangle(image, (x, y), ( w, h), (0, 255, 255), 2)
         self.im = imshow(image, im=self.im)
@@ -88,25 +88,22 @@ class PersonCameraRunner():
         pass
 
 
-class FaceCameraRunner():
+class TrackingCameraRunner():
     """
     Deprecated, facial recognition is not a priority atm
     """
 
     def __init__(self, camera=0):
-        self.faces = Faces()
+        self.tracker = cv2.TrackerKCF_create()
+        self.tracking = False
         self.camera = Camera(camera)
         self.camera.start()
         self.frame = None
         self.im = None
 
     def close(self):
-        self.faces.save_model()
-        self.faces.save_identities()
-        self.faces.save_identities()
         self.camera.release()
         cv2.destroyAllWindows()
-        del self.faces
 
     def track_tennis_ball(self):
         center, radius, image = track_tennis_ball(self.frame)
@@ -119,39 +116,27 @@ class FaceCameraRunner():
         if ret is True:
             self.frame = frame
 
-    def capture(self, i, name):
-        image = self.faces.detect_in_current_frame(self.frame)
-        for face in self.faces.detected_faces:
-            cv2.putText(image, str(i), (face.bounds[0], face.bounds[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0),
-                        2, cv2.LINE_AA)
-        self.im = imshow(image, im=self.im)
+    def track_face(self, i, name):
+        image = self.frame.copy()
+        if self.tracking:
+            tracking, face = self.tracker.update()
+        else:
+            rects = self.detect_faces()
+            rects = sorted(rects, key=lambda x: x[2]*x[3], reverse=True)
+            face = rects[0]
 
-        self.faces.single_face_capture(name)
+        return face, image
 
-    def prepare_face_capture(self, i):
-        # note, face detection takes up 45% of the runtime of this function
-        image = self.faces.detect_in_current_frame(self.frame)
-        for face in self.faces.detected_faces:
-            cv2.putText(image, "Prepare for Capture " + str(delay - i), (face.bounds[0], face.bounds[1]),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0),
-                        2, cv2.LINE_AA)
-        # note, this part takes up 45% of the runtime of the function
-        self.im = imshow(image, im=self.im)
+    def detect_faces(self):
+        gray = cv2.cvtColor(self.frame, cv2.COLOR_RGB2GRAY)
 
-    def face_recog(self):
-        image = self.faces.detect_in_current_frame(self.frame)
+        faces = face_cascade.detectMultiScale(gray, 1.5, 5, minSize=(80, 80))
+        rects = []
+        for (x, y, w, h) in faces:
+            x = x - w // 6
+            y = y - h // 4
+            w = w + w // 3
+            h = h + h // 2
+            rects.append((x,y,w,h))
 
-        # this component takes between 1 and 33% of the runtime of this function, .01 to .1 seconds
-        self.faces.track_faces()
-
-        for face in self.faces.detected_faces:
-            if face.name is not "":
-                cv2.putText(image, face.name, (face.bounds[0], face.bounds[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0),
-                            2, cv2.LINE_AA)
-        self.im = imshow(image, im=self.im)
-
-    def estimate_pose(self):
-        pass
-
-    def crude_positioning(self):
-        pass
+        return rects

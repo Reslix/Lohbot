@@ -16,8 +16,8 @@ class PersonDetector():
     def detect_person(self, image):
 
         image = imutils.resize(image, width=400)
-        (rects, weights) = self.hog.detectMultiScale(image, winStride=(4, 4),
-                                                padding=(8, 8), scale=.5)
+        (rects, weights) = self.hog.detectMultiScale(image, winStride=(2, 2),
+                                                padding=(8, 8), scale=1.05)
         # apply non-maxima suppression to the bounding boxes using a
         # fairly large overlap threshold to try to maintain overlapping
         # boxes that are still people
