@@ -4,8 +4,9 @@ How to set up flask-ask running locally
 
 ## Install python and set up virtualenv on Jetson
 
+1. Open a terminal in the folder where Pipfile.lock is (jetson/alexa).
 1. Install Python: `sudo apt-get install python`
-1. Install dependencies for cryptography module: `sudo apt-get install build-essential libssl-dev libffi-dev python-dev`
+1. Install dependencies for cryptography module: `sudo apt-get install build-essential libssl-dev libffi-dev python-dev python3-pip`
 1. Install pipenv for all users: `sudo -H pip3 install -U pipenv`
 1. Install Python packages to this virtualenv: `pipenv install`
 
@@ -52,9 +53,9 @@ How to set up flask-ask running locally
 ## Set up service on Jetson
 
 1. Start virualenv: `pipenv shell`
-1. Start a server to listen to robot control commands: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:34443 myapp:app`. Ctrl+C will terminate it.
+1. Start a server to listen to robot control commands: `python myapp.py`. Ctrl+C will terminate it.
 1. Open a new terminal and start virtualenv: `pipenv shell`
-1. Start a server to listen run the memory game: `gunicorn --certfile certificate.pem --keyfile private-key.pem -b localhost:11577 memory_game.memory_game:app`. Ctrl+C will terminate it.
+1. Start a server to listen run the memory game: `python memory_game/memory_game.py`. Ctrl+C will terminate it.
 1. To exit virtualenv and return to plain shell, use `exit`
 
 ## Resources

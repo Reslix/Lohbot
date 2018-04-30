@@ -4,6 +4,8 @@ import serial
 import threading
 from threading import Thread
 
+from glob import glob
+
 class SerialIO():
 
     # methods we should call to move the robot around
@@ -22,6 +24,28 @@ class SerialIO():
     def right(self, speed = 48):
         self.write(b'r', bytes([speed]))
 
+    # Direct drive the motors, 
+    # left and right are the speeds of the motors
+    # and are in the range [-255, 255] and are integers
+    def direct(self, left = 48, right = 48):
+        # decode the directions based off the sign of the inputs
+        dirs = 0
+        dirs += (left >= 0) 
+        dirs += (right >= 0) << 1
+
+        # arduino no like negative numbers
+        if left < 0:
+            left *= -1
+        if right < 0:
+            right *= -1
+
+        self.lock.acquire()
+        self.buffer[0] = b'd'
+        self.buffer[1] = bytes([dirs])
+        self.buffer[2] = bytes([left])
+        self.buffer[3] = bytes([right])
+        self.lock.release()
+
     def stop(self):
         self.write(b's')
 
@@ -33,13 +57,16 @@ class SerialIO():
         self.delay = delay
         self.running = 1
         # buffer is [command, speed]
-        self.buffer = [0, 0]
+        self.buffer = [0, 0, 0, 0]
         self.check = 0
         self.lock = threading.RLock()
         self.distances = {'left': 201,'right': 201,'middle': 201} # start off with error values for distance
 
         # better than silently failing
-        self.ser = serial.Serial('/dev/ttyACM1', self.baud, timeout = self.delay)
+        # Also jenk AF way to find current port arduino connected to but 
+        # ¯\_(ツ)_/¯
+        port = glob('/dev/ttyACM*')[0]
+        self.ser = serial.Serial(port, self.baud, timeout = self.delay)
         # wait for startup time
         # Toggle DTR to reset Arduino
         self.ser.setDTR(False)
@@ -107,6 +134,10 @@ class SerialIO():
                     self.ser.write(self.buffer[1])
                     # print('also writing: {}'.format(self.buffer[1][0]))
                 # wait for arduino to write back
+                if self.buffer[0] == b'd':
+                    self.ser.write(self.buffer[1])
+                    self.ser.write(self.buffer[3])
+                    self.ser.write(self.buffer[3])
                 c = self.ser.read(1)
                 self.check = c
                 # jenky way to check if message in buffer

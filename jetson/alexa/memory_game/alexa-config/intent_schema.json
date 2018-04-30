@@ -1,39 +1,43 @@
 {
-  "interactionModel": {
-      "languageModel": {
-          "invocationName": "memory game",
-          "intents": [
-              {
-                  "name": "YesIntent",
-                  "slots": [],
-                  "samples": [
-                      "yes",
-                      "sure"
-                  ]
-              },
-              {
-                  "name": "AnswerIntent",
-                  "slots": [
-                      {
-                          "name": "first",
-                          "type": "AMAZON.NUMBER"
-                      },
-                      {
-                          "name": "second",
-                          "type": "AMAZON.NUMBER"
-                      },
-                      {
-                          "name": "third",
-                          "type": "AMAZON.NUMBER"
-                      }
-                  ],
-                  "samples": [
-                      "{first} {second} {third}",
-                      "{first} {second} and {third}"
-                  ]
-              }
-          ],
-          "types": []
-      }
-  }
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "memory game",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": [
+                        "cancel"
+                    ]
+                },
+                {
+                    "name": "AMAZON.NoIntent",
+                    "samples": [
+                        "no"
+                    ]
+                },
+                {
+                    "name": "AMAZON.YesIntent",
+                    "samples": [
+                        "yes"
+                    ]
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": [
+                        "stop"
+                    ]
+                },
+                {
+                    "name": "AMAZON.StartOverIntent",
+                    "samples": [
+                        "restart the game",
+                        "restart",
+                        "start the game over",
+                        "start over"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
 }
