@@ -3,7 +3,7 @@
 import serial
 import threading
 from threading import Thread
-
+import sys
 from glob import glob
 
 class SerialIO():
@@ -70,7 +70,11 @@ class SerialIO():
         # better than silently failing
         # Also jenk AF way to find current port arduino connected to but 
         # ¯\_(ツ)_/¯
-        port = glob('/dev/ttyACM*')[0]
+        port = glob('/dev/ttyACM*')
+        if len(port) == 0:
+            sys.stderr.write('No arduino connected!'+ '\n')
+            exit(1)
+        port = port[0]
         self.ser = serial.Serial(port, self.baud, timeout = self.delay)
         # wait for startup time
         # Toggle DTR to reset Arduino
