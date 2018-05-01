@@ -47,7 +47,8 @@ How to set up flask-ask running locally
 
 1. Edit configuration.cnf. Change the IP address.
 1. Create a private key: `openssl genrsa -out private-key.pem 2048`
-1. Generate a private key and public key `openssl req -new -x509 -days 365 -key private-key.pem -config configuration.cnf -out certificate.pem`
+1. Start a server to listen to voice commands for memory game: `python start_flask_servers.py 0`. Ctrl+C will terminate it.
+1. Start a server to listen to voice commands for robot movement: `python start_flask_servers.py 1`. Ctrl+C will terminate it.
 1. Upload certificate.pem to the Alexa skill under Endpoint > Default Region > Upload self-signed certificate.
 
 ## Set up service on Jetson

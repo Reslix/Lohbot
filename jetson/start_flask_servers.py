@@ -1,3 +1,4 @@
+import argparse
 import logging
 from random import randint
 from flask import Flask, render_template
@@ -169,18 +170,29 @@ def number_of_workers():
 
 
 if __name__ == '__main__':
-    options = {
-        'bind': '%s:%s' % ('localhost', '34443'),
-        'certfile': '%s' % ('certificate.pem'),
-        'keyfile': '%s' % ('private-key.pem'),
-        'workers': number_of_workers(),
-    }
-    StandaloneApplication(movement_app, options).run()
+    parser = argparse.ArgumentParser(description='Start a Flask server to listen to Alexa commands.')
+    parser.add_argument('server_number', type=int,
+                               help='a number for which server to start')
+    args = parser.parse_args()
+    s = args.server_number
+    print(args.server_number)
 
-    options = {
-        'bind': '%s:%s' % ('localhost', '11577'),
-        'certfile': '%s' % ('certificate.pem'),
-        'keyfile': '%s' % ('private-key.pem'),
-        'workers': number_of_workers(),
-    }
-    StandaloneApplication(memory_game_app, options).run()
+    if s == 0:
+        options = {
+            'bind': '%s:%s' % ('localhost', '34443'),
+            'certfile': '%s' % ('certificate.pem'),
+            'keyfile': '%s' % ('private-key.pem'),
+            'workers': number_of_workers(),
+        }
+        StandaloneApplication(movement_app, options).run()
+
+    elif s == 1:
+        options = {
+            'bind': '%s:%s' % ('localhost', '11577'),
+            'certfile': '%s' % ('certificate.pem'),
+            'keyfile': '%s' % ('private-key.pem'),
+            'workers': number_of_workers(),
+        }
+        StandaloneApplication(memory_game_app, options).run()
+    else:
+        print("Invalid server arg")
