@@ -1,8 +1,0 @@
-
-welcome: Welcome to memory game. I'm going to say a word, and you tell me if you've heard me say it before during this round. Say okay to start.
-
-win: Great job! You've gone through all {{ count }} of the words I've got.
-
-lose: Sorry, that's the wrong answer. You went through {{ count }} words.
-
-bye: Goodbye. You went through {{ count }} words.
