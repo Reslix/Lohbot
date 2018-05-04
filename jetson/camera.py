@@ -5,10 +5,10 @@ import cv2
 from balltrack import track_tennis_ball
 from show import imshow
 
-
 delay = 30
 
-face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
+face_cascade = cv2.CascadeClassifier('cascades_cuda/haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier('cascades_cuda/harrcascade_eye.xml')
 
 
 class Camera:
@@ -20,8 +20,8 @@ class Camera:
 
         self.success, self.image = self.cap.read()
         self.stopped = False
-        #self.calib = pickle.load('calibration.pickle')
-        #self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
+        # self.calib = pickle.load('calibration.pickle')
+        # self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
 
     def update(self):
         while True:
@@ -38,7 +38,7 @@ class Camera:
         image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         return self.success, image
 
-    def undistort(self,image):
+    def undistort(self, image):
         return cv2.undistort(image, self.calib[1])
 
     def release(self):
@@ -72,8 +72,8 @@ class PersonCameraRunner():
 
     def step_imshow_frame(self):
         rects, image = self.detector(self.frame)
-        for (x,y,w,h) in rects:
-            cv2.rectangle(image, (x, y), ( w, h), (0, 255, 255), 2)
+        for (x, y, w, h) in rects:
+            cv2.rectangle(image, (x, y), (w, h), (0, 255, 255), 2)
         self.im = imshow(image, im=self.im)
 
     def track_people(self):
@@ -124,7 +124,7 @@ class TrackingCameraRunner():
             print('tracking')
         else:
             rects = self.detect_faces()
-            rects = sorted(rects, key=lambda x: x[2]*x[3], reverse=True)
+            rects = sorted(rects, key=lambda x: x[2] * x[3], reverse=True)
             face = rects[0] if len(rects) else None
             if face is not None:
                 self.tracker = cv2.TrackerKCF_create()
@@ -145,6 +145,8 @@ class TrackingCameraRunner():
             y = y - h // 4
             w = w + w // 3
             h = h + h // 2
-            rects.append((x,y,w,h))
+            eyes = eye_cascade.detectMultiScale(gray[y:y + h, x:x + w])
+            if eyes is not None and len(eyes) > 0:
+                rects.append((x, y, w, h))
 
         return rects
