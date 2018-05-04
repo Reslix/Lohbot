@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import math, time
+from threading import Thread
 
 from flask import Flask, render_template, Response
 
@@ -37,18 +39,16 @@ if __name__ == "__main__":
     ard = SerialIO()
     ard.start()
 
-    c = TrackingCameraRunner(1)
+    c = TrackingCameraRunner(0)
     camera = c.camera
-    app.run('localhost','80')
+    Thread(target=app.run(), args=('localhost','80')).start()
     im = None
     tcenterx = 640
     tsize = 160
     while True:
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
-            with open('ALEXA_COMMAND.txt' as file:
-                    # idk maybe a way to read just 1 line but should be fine this way...
-                    for line in file:
-                        command = line
+            with open('ALEXA_COMMAND.txt') as file:
+                command = file.read().strip()
         if command == 'follow':
             c.step_frame()
             rect, image = c.track_face()
@@ -72,6 +72,6 @@ if __name__ == "__main__":
         elif command == 'openpose':
             #TODO
             pass
-        else
+        else:
             print('undefined command')
 
