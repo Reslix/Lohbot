@@ -1,7 +1,0 @@
-StopIntent stop
-StopIntent stop moving
-StartMovingIntent start moving
-StartMovingIntent go forward
-StartMovingIntent move forward
-TurnIntent turn {Direction}
-TurnIntent go {Direction}
