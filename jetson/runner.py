@@ -6,6 +6,33 @@ from serial_io import SerialIO
 from camera import TrackingCameraRunner
 from show import imshow
 import cv2
+
+import fasteners
+
+"""
+The object structure will be as follows: 
+    
+    Motion()
+        Serial()
+        Map()
+            Mapper()
+                Various Sensors()
+                    Serial()
+                    Segmenter()
+                    Object()
+                    Depth()
+    CameraRunner()
+        Face()
+        Pose()
+        Object()
+        Depth()
+        Segmenter()
+    Alexa()
+    ...
+    ...
+
+    Ideally we have all the classes declared in here so we can reduce redundancy.
+"""
     
 
 
@@ -31,26 +58,40 @@ if __name__ == "__main__":
     tcenterx = 640
     tsize = 160
     while True:
-        c.step_frame()
-        rect, image = c.track_face()
-        if rect is not None:
-            cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 255), 2)
-            im = imshow(image, im=im)
+        with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
+            with open('ALEXA_COMMAND.txt' as file:
+                    # idk maybe a way to read just 1 line but should be fine this way...
+                    for line in file:
+                        command = line
+        if command == 'follow':
+            c.step_frame()
+            rect, image = c.track_face()
+            if rect is not None:
+                cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 255), 2)
+                im = imshow(image, im=im)
 
-            center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
-            size = math.sqrt(rect[2]**2+rect[3]**2)
+                center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
+                size = math.sqrt(rect[2]**2+rect[3]**2)
 
-            differential = -(tcenterx - center[0]) // 1 
-            distance = tsize - size
-            left = distance//2 + differential
-            right = distance//2 - differential
-            left = min(left,60) if left >= 0 else max(left,-60)
-            right = min(right,60) if right >= 0 else max(right,-60)
-            print(left,right)
-            ard.direct(int(left), int(right))
-        else:
+                differential = -(tcenterx - center[0]) // 1 
+                distance = tsize - size
+                left = distance//2 + differential
+                right = distance//2 - differential
+                left = min(left,60) if left >= 0 else max(left,-60)
+                right = min(right,60) if right >= 0 else max(right,-60)
+                print(left,right)
+                ard.direct(int(left), int(right))
+            else:
+                ard.stop()
+                im = imshow(image, im=im)
+        elif command == 'stop':
             ard.stop()
-            im = imshow(image, im=im)
+        elif command == 'openpose':
+            #TODO
+            pass
+        else
+            print('undefined command')
+
 
 
         """
