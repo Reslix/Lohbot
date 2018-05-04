@@ -8,7 +8,7 @@ from show import imshow
 delay = 30
 
 face_cascade = cv2.CascadeClassifier('cascades_cuda/haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('cascades_cuda/harrcascade_eye.xml')
+eye_cascade = cv2.CascadeClassifier('cascades_cuda/haarcascade_eye.xml')
 
 
 class Camera:
@@ -141,10 +141,10 @@ class TrackingCameraRunner():
         faces = face_cascade.detectMultiScale(gray, 1.5, 5, minSize=(80, 80))
         rects = []
         for (x, y, w, h) in faces:
-            x = x - w // 6
-            y = y - h // 4
-            w = w + w // 3
-            h = h + h // 2
+            x = max(0,x - w // 6)
+            y = max(0,y - h // 4)
+            w = min(w + w // 3,1280)
+            h = min(h + h // 2,720)
             eyes = eye_cascade.detectMultiScale(gray[y:y + h, x:x + w])
             if eyes is not None and len(eyes) > 0:
                 rects.append((x, y, w, h))

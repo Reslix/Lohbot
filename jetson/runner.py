@@ -59,11 +59,10 @@ if __name__ == "__main__":
     tsize = 160
     while True:
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
-            with open('ALEXA_COMMAND.txt' as file:
-                    # idk maybe a way to read just 1 line but should be fine this way...
-                    for line in file:
-                        command = line
-        if command == 'follow':
+            with open('ALEXA_COMMAND.txt') as file:
+                    # fixed it
+                    command = file.read().strip()
+        if command == 'follow': 
             c.step_frame()
             rect, image = c.track_face()
             if rect is not None:
@@ -89,7 +88,7 @@ if __name__ == "__main__":
         elif command == 'openpose':
             #TODO
             pass
-        else
+        else:
             print('undefined command')
 
 
