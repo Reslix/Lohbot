@@ -45,6 +45,8 @@ class Camera:
         self.stopped = True
         self.cap.release()
 
+    def get_jpg(self):
+        return cv2.imencode('.jpg', self.image)[1].tostring()
 
 class EnetCameraRunner():
     """

@@ -1,68 +1,45 @@
 import math, time
 
+from flask import Flask, render_template, Response
+
 from serial_io import SerialIO
 from camera import TrackingCameraRunner
 from show import imshow
 import cv2
-
 import fasteners
 
-"""
-The object structure will be as follows: 
-    
-    Motion()
-        Serial()
-        Map()
-            Mapper()
-                Various Sensors()
-                    Serial()
-                    Segmenter()
-                    Object()
-                    Depth()
-    CameraRunner()
-        Face()
-        Pose()
-        Object()
-        Depth()
-        Segmenter()
-    Alexa()
-    ...
-    ...
+app = Flask(__name__)
 
-    Ideally we have all the classes declared in here so we can reduce redundancy.
-    
-"""
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
-# (0, 0) is top left
-# If ball if past left_threshold (perentage of camera screen), move left. Between 0 and 1.
-left_threshold = 0.35
-# If ball is past right_threshold (perentage of camera screen), move right. Between 0 and 1.
-right_threshold = 0.65
-# Move forward if ball radius < this value
-ball_radius_min = 20.0
-# Move backwards if ball radius > this value
-ball_radius_max = 30.0
+def gen(camera):
+    while True:
+        frame = camera.get_jpg()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(gen(camera),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
 
 if __name__ == "__main__":
 
-    import argparse
 
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description='Deals with all camera related stuff')
-    parser.add_argument('-n', required=False, action="store",
-                        help='Name of person')
-    parser.add_argument('--frames', required=False,
-                        metavar="Number of frame captures", default=100,
-                        help='Number of frame captures')
-    args = parser.parse_args()
 
     #We have a single instance of our serial communicator
     ard = SerialIO()
     ard.start()
 
     c = TrackingCameraRunner(1)
+    camera = c.camera
+    app.run('localhost','80')
     im = None
     tcenterx = 640
     tsize = 160
@@ -97,51 +74,4 @@ if __name__ == "__main__":
             pass
         else
             print('undefined command')
-
-
-
-        """
-        center, radius, image = c.track_tennis_ball()
-        # print(str(image.shape[0]))
-        height = image.shape[0]
-        width = image.shape[1]
-
-        # First, turn if necessary
-        # Move forward if far away, move backwards if too close
-        if center:
-            print('center: ' + str(center) + ' radius: ' + str(radius))
-            if center[0] > width*right_threshold:
-                print('Turn right')
-                ard.right()
-                time.sleep(0.5)
-                print('And stopping')
-                ard.stop()
-
-            elif center[0] < width*left_threshold:
-                print('Turn left')
-                ard.left()
-                time.sleep(0.5)
-                print('And stopping')
-                ard.stop()
-
-            else:
-                if (radius < ball_radius_min):
-                    print('Move forward')
-                    ard.forward()
-
-                elif (radius > ball_radius_max):
-                    print('Move backwards')
-                    ard.backward()
-
-                else:
-                    print('Not moving')
-                    ard.stop()
-
-        else:
-            print("No ball found")
-            ard.stop()
-
-        time.sleep(0.5)
-        """
-
 
