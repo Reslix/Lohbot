@@ -1,19 +1,64 @@
 {
-  "intents": [
-    {
-      "intent": "StopIntent"
-    },
-    {
-      "intent": "StartMovingIntent"
-    },
-    {
-      "intent": "TurnIntent",
-      "slots": [
-        {
-          "name": "Direction",
-          "type": "TURN_DIRECTION"
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "robot",
+            "intents": [
+                {
+                    "name": "StopIntent",
+                    "slots": [],
+                    "samples": [
+                        "stop",
+                        "stop moving"
+                    ]
+                },
+                {
+                    "name": "StartMovingIntent",
+                    "slots": [],
+                    "samples": [
+                        "start moving",
+                        "go forward",
+                        "move forward"
+                    ]
+                },
+                {
+                    "name": "TurnIntent",
+                    "slots": [
+                        {
+                            "name": "Direction",
+                            "type": "TURN_DIRECTION"
+                        }
+                    ],
+                    "samples": [
+                        "turn {Direction}",
+                        "go {Direction}"
+                    ]
+                },
+                {
+                    "name": "FollowIntent",
+                    "slots": [],
+                    "samples": [
+                        "follow",
+                        "follow me"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "TURN_DIRECTION",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "left"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "right"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
-      ]
     }
-  ]
 }

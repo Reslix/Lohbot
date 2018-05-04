@@ -25,22 +25,29 @@ logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 def turn(direction):
     with fasteners.InterProcessLock(lock_file_name):
         with open(file_name, "w+") as file:
-            file.write(direction[0].upper())
+            file.write(direction.lower())
     return statement(render_template('turn', direction=direction))
 
 @movement_ask.intent("StartMovingIntent")
 @fasteners.interprocess_locked(lock_file_name)
 def start_moving():
     with open(file_name, "w+") as file:
-        file.write("F")
+        file.write("forward")
     return statement(render_template('move_forward'))
 
 @movement_ask.intent("StopIntent")
 @fasteners.interprocess_locked(lock_file_name)
 def stop_moving():
     with open(file_name, "w+") as file:
-        file.write("S")
+        file.write("stop")
     return statement(render_template('stop'))
+
+@movement_ask.intent("FollowIntent")
+@fasteners.interprocess_locked(lock_file_name)
+def follow():
+    with open(file_name, "w+") as file:
+        file.write("follow")
+    return statement(render_template('follow'))
 
 
 #############################################################################
