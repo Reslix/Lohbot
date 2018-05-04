@@ -9,4 +9,5 @@ args = parser.parse_args()
 s = args.server_number
 print(args.server_number)
 
+# FlaskServerStarter.test()
 FlaskServerStarter.start(s)

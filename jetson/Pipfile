@@ -1,15 +1,11 @@
 [[source]]
-
 verify_ssl = true
 name = "pypi"
 url = "https://pypi.python.org/simple"
 
-
 [packages]
-
-flask-ask = "*"
 gunicorn = "*"
-
+fasteners = "*"
+flask-ask = {git = "https://github.com/johnwheeler/flask-ask.git", ref = "master"}
 
 [dev-packages]
-

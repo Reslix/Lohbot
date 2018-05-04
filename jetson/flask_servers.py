@@ -1,11 +1,17 @@
 import argparse
 import logging
 from random import randint
+import time
+
+import fasteners
+
 from flask import Flask, render_template
 from flask_ask import Ask, statement, question, session
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
+lock_file_name = 'ALEXA_COMMAND.txt.lock'
+file_name = 'ALEXA_COMMAND.txt'
 
 #############################################################################
 # Flask server to handle request for movement from the Alexa
@@ -17,14 +23,23 @@ logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 
 @movement_ask.intent("TurnIntent", mapping={'direction': 'Direction'})
 def turn(direction):
+    with fasteners.InterProcessLock(lock_file_name):
+        with open(file_name, "w+") as file:
+            file.write(direction[0].upper())
     return statement(render_template('turn', direction=direction))
 
 @movement_ask.intent("StartMovingIntent")
+@fasteners.interprocess_locked(lock_file_name)
 def start_moving():
+    with open(file_name, "w+") as file:
+        file.write("F")
     return statement(render_template('move_forward'))
 
 @movement_ask.intent("StopIntent")
+@fasteners.interprocess_locked(lock_file_name)
 def stop_moving():
+    with open(file_name, "w+") as file:
+        file.write("S")
     return statement(render_template('stop'))
 
 
@@ -148,6 +163,14 @@ def session_ended():
 #############################################################################
 
 class FlaskServerStarter():
+    @staticmethod
+    def test():
+        #start_moving()
+        #stop_moving()
+        #turn("Left")
+        print('Waiting for the lock')
+        turn("Right")
+
     @staticmethod
     def start(s):
         if s == 0:
