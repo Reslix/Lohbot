@@ -35,10 +35,8 @@ if __name__ == "__main__":
         if command == 'follow':
             rect = c.track_face()
             if rect is not None:
-
                 center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
                 size = math.sqrt(rect[2]**2+rect[3]**2)
-
                 differential = (tcenterx - center[0]) // 3
                 distance = tsize - size
                 left = distance + differential
@@ -46,7 +44,6 @@ if __name__ == "__main__":
                 ard.direct(int(left), int(right))
             else:
                 ard.stop()
-                im = imshow(image, im=im)
         elif command == 'stop':
             ard.stop()
         elif command == 'openpose':

@@ -16,7 +16,6 @@ class Camera:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.cap.set(cv2.CAP_PROP_FPS, fps)
-
         self.success, self.image = self.cap.read()
         self.stopped = False
         # self.calib = pickle.load('calibration.pickle')
@@ -45,6 +44,8 @@ class Camera:
         self.cap.release()
 
     def get_jpg(self):
+        image = self.image
+
         return cv2.imencode('.jpg', self.image)[1].tostring()
 
 class TrackingCameraRunner():
@@ -66,9 +67,9 @@ class TrackingCameraRunner():
 
     def track_tennis_ball(self):
         center, radius, image = track_tennis_ball(self.frame)
-        cv2.circle(self.frame, (int(x), int(y)), int(radius),
+        cv2.circle(self.camera.image, (int(x), int(y)), int(radius),
                    (0, 255, 255), 2)
-        cv2.circle(self.frame, center, 5, (0, 0, 255), -1)        return center, radius, image
+        cv2.circle(self.camera.image, center, 5, (0, 0, 255), -1)        return center, radius, image
 
     def step_frame(self):
 
@@ -94,7 +95,7 @@ class TrackingCameraRunner():
                 print('reinitializing')
             print('detecting')
 
-        cv2.rectangle(self.frame, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
+        cv2.rectangle(self.camera.image, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
 
         return face
 
