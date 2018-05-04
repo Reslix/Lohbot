@@ -1,35 +1,13 @@
+#!/usr/bin/env python3
+
 import math, time
 
 from serial_io import SerialIO
 from camera import TrackingCameraRunner
 from show import imshow
 import cv2
-
-"""
-The object structure will be as follows: 
     
-    Motion()
-        Serial()
-        Map()
-            Mapper()
-                Various Sensors()
-                    Serial()
-                    Segmenter()
-                    Object()
-                    Depth()
-    CameraRunner()
-        Face()
-        Pose()
-        Object()
-        Depth()
-        Segmenter()
-    Alexa()
-    ...
-    ...
 
-    Ideally we have all the classes declared in here so we can reduce redundancy.
-    
-"""
 
 
 # (0, 0) is top left
@@ -44,23 +22,11 @@ ball_radius_max = 30.0
 
 if __name__ == "__main__":
 
-    import argparse
-
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description='Deals with all camera related stuff')
-    parser.add_argument('-n', required=False, action="store",
-                        help='Name of person')
-    parser.add_argument('--frames', required=False,
-                        metavar="Number of frame captures", default=100,
-                        help='Number of frame captures')
-    args = parser.parse_args()
-
     #We have a single instance of our serial communicator
     ard = SerialIO()
     ard.start()
 
-    c = TrackingCameraRunner(1)
+    c = TrackingCameraRunner(0)
     im = None
     tcenterx = 640
     tsize = 160
@@ -74,10 +40,13 @@ if __name__ == "__main__":
             center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
             size = math.sqrt(rect[2]**2+rect[3]**2)
 
-            differential = (tcenterx - center[0]) // 3
+            differential = -(tcenterx - center[0]) // 1 
             distance = tsize - size
-            left = distance + differential
-            right = distance - differential
+            left = distance//2 + differential
+            right = distance//2 - differential
+            left = min(left,60) if left >= 0 else max(left,-60)
+            right = min(right,60) if right >= 0 else max(right,-60)
+            print(left,right)
             ard.direct(int(left), int(right))
         else:
             ard.stop()
