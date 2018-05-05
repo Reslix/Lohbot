@@ -53,8 +53,9 @@ def follow():
 #############################################################################
 # A simple memory game
 
-# Alexa will say a word, and you (the user) respond if you've heard it before or not
-# 50% chance of saying word already heard before, 50% chance of saying old word
+# Alexa will say a word, and you (the user) respond if you've heard it before
+# or not
+# 50% chance of saying word already said before, 50% chance of saying new word
 
 # Flask session attributes:
 # words_to_say -- list of words to say, randomized for each session

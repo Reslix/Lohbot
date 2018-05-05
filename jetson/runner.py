@@ -1,39 +1,16 @@
 #!/usr/bin/env python3
 import math, time
-from threading import Thread
-
-from flask import Flask, render_template, Response
+from multiprocessing import Process
 
 from serial_io import SerialIO
 from camera import TrackingCameraRunner
+from flask_streaming_server import start_streaming_server
 from show import imshow
 import cv2
 import fasteners
 
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
-def gen(camera):
-    while True:
-        frame = camera.get_jpg()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen(camera),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
 
 if __name__ == "__main__":
-
-
 
     #We have a single instance of our serial communicator
     ard = SerialIO()
@@ -41,7 +18,11 @@ if __name__ == "__main__":
 
     c = TrackingCameraRunner(0)
     camera = c.camera
-    Thread(target=app.run(), args=('localhost','80')).start()
+
+    # Start web server to stream camera image
+    p = Process(target=start_streaming_server, args=(camera,))
+    p.start()
+
     im = None
     tcenterx = 640
     tsize = 160

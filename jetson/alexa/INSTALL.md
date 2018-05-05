@@ -16,31 +16,7 @@ How to set up flask-ask running locally
 1. Install nginx: `sudo apt install nginx`
 1. Add a user `sudo adduser flaskapp`
 1. In `sudo vim /etc/nginx/nginx.conf`, Change `user  www-data;` to `user  flaskapp`. In the http block, uncomment this line: `server_names_hash_bucket_size 64;` and change `64` to `128`
-1. In `sudo vim /etc/nginx/conf.d/virtual.conf`, add:
-
-        server {
-            listen 443 ssl;
-            ssl_certificate /home/nvidia/certificate.pem;
-            ssl_certificate_key /home/nvidia/private-key.pem;
-
-            location ~/robot(.*)$ {
-                proxy_pass https://127.0.0.1:34443$1;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto https;
-                proxy_redirect    off;
-            }
-            location ~/memory-game(.*)$ {
-                proxy_pass https://127.0.0.1:11577$1;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto https;
-                proxy_redirect    off;
-            }
-        }
-
+1. Copy nginx-virtual.conf to /etc/nginx/conf.d/virtual.conf
 1. Restart nginx: `sudo systemctl restart nginx`
 
 ## Set up HTTPS certificate
