@@ -1,10 +1,22 @@
 <html>
     <head>
-        <title>Video Streaming Demonstration</title>
+        <title>Robot Info</title>
     </head>
     <body>
         <h1>Video Streaming Demonstration</h1>
         <img src="{{ url_for('video_feed') }}">
+        <br>
+
+        <h1>Current status</h1>
+        <p id="status"></p>
+
+        <script src="https://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+        <script language="javascript" type="text/javascript">
+            var timeout = setInterval(reloadStatus, 1000);
+            function reloadStatus () {
+                $('#status').load("{{ url_for('send_status') }}");
+            }
+        </script>
     </body>
 </html>
 

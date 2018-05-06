@@ -1,9 +1,9 @@
+from multiprocessing import Process, Queue
+import time
 
-from flask import Flask, render_template, Response
+from flask import Blueprint, Flask, render_template, Response, send_file
 import gunicorn.app.base
 from gunicorn.six import iteritems
-from multiprocessing import Queue
-import time
 
 """
 Starts a Flask server to listen to streaming requests
@@ -11,11 +11,14 @@ Starts a Flask server to listen to streaming requests
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 def gen(camera):
+    if camera == None:
+        return
     while True:
         frame = camera.get_jpg()
         yield (b'--frame\r\n'
@@ -26,6 +29,9 @@ def video_feed():
     return Response(gen(app.config['CAMERA']),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/status')
+def send_status():
+    return send_file("ALEXA_COMMAND.txt")
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
     """Class for starting custom Gunicorn WSGI application"""
@@ -49,7 +55,6 @@ def start_streaming_server(c):
     c -- Camera object (from camera.py)
     """
     app.config['CAMERA'] = c
-    # fun(q)
 
     options = {
         'bind': '%s:%s' % ('localhost', '11578'),
@@ -58,3 +63,8 @@ def start_streaming_server(c):
         'workers': 1,
     }
     StandaloneApplication(app, options).run()
+
+if __name__ == "__main__":
+    p = Process(target = start_streaming_server, args=(None,))
+    p.start()
+    p.join()
