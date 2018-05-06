@@ -10,8 +10,8 @@ from flask_ask import Ask, statement, question, session
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-lock_file_name = 'ALEXA_COMMAND.txt.lock'
-file_name = 'ALEXA_COMMAND.txt'
+lock_file_name = '../ALEXA_COMMAND.txt.lock'
+file_name = '../ALEXA_COMMAND.txt'
 
 #############################################################################
 # Flask server to handle request for movement from the Alexa
@@ -110,7 +110,7 @@ def said_no():
 def next_round(user_said_yes):
     """Returns a response either ending the game or saying the next word
 
-    user_said_yes -- False if user said No, True if user said Yes
+    :param user_said_yes: False if user said No, True if user said Yes
     """
 
     words_said_count = len(session.attributes['words_already_said'])
@@ -170,36 +170,30 @@ def session_ended():
 # Boilerplate code for starting Gunicorn
 #############################################################################
 
-class FlaskServerStarter():
-    @staticmethod
-    def test():
-        #start_moving()
-        #stop_moving()
-        #turn("Left")
-        print('Waiting for the lock')
-        turn("Right")
+def start(s):
+    """
+    Starts a Gunicorn server for a Flask Ask application
+    :param s: integer (server number)
+    """
 
-    @staticmethod
-    def start(s):
-        if s == 0:
-            options = {
-                'bind': '%s:%s' % ('localhost', '34443'),
-                'certfile': '%s' % ('certificate.pem'),
-                'keyfile': '%s' % ('private-key.pem'),
-                'workers': number_of_workers(),
-            }
-            StandaloneApplication(movement_app, options).run()
-
-        elif s == 1:
-            options = {
-                'bind': '%s:%s' % ('localhost', '11577'),
-                'certfile': '%s' % ('certificate.pem'),
-                'keyfile': '%s' % ('private-key.pem'),
-                'workers': number_of_workers(),
-            }
-            StandaloneApplication(memory_game_app, options).run()
-        else:
-            print("Invalid server arg")
+    if s == 0:
+        options = {
+            'bind': '%s:%s' % ('localhost', '34443'),
+            'certfile': '%s' % ('certificate.pem'),
+            'keyfile': '%s' % ('private-key.pem'),
+            'workers': number_of_workers(),
+        }
+        StandaloneApplication(movement_app, options).run()
+    elif s == 1:
+        options = {
+            'bind': '%s:%s' % ('localhost', '11577'),
+            'certfile': '%s' % ('certificate.pem'),
+            'keyfile': '%s' % ('private-key.pem'),
+            'workers': number_of_workers(),
+        }
+        StandaloneApplication(memory_game_app, options).run()
+    else:
+        print("Invalid server arg")
 
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
@@ -222,4 +216,3 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def number_of_workers():
     return 1
-
