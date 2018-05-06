@@ -22,6 +22,7 @@ if __name__ == "__main__":
     image_dictionary = Manager().dict()
     ImageManager.register('get_dict', callable=lambda:image_dictionary)
     manager = ImageManager()
+    manager.start()
 
     # Start web server to stream camera image
     p = Process(target=start_streaming_server, args=(manager,))
