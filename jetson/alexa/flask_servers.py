@@ -10,8 +10,8 @@ from flask_ask import Ask, statement, question, session
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-lock_file_name = '../ALEXA_COMMAND.txt.lock'
-file_name = '../ALEXA_COMMAND.txt'
+lock_file_name = 'ALEXA_COMMAND.txt.lock'
+file_name = 'ALEXA_COMMAND.txt'
 
 #############################################################################
 # Flask server to handle request for movement from the Alexa
