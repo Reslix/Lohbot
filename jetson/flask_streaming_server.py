@@ -1,4 +1,4 @@
-from multiprocessing import Process, Queue
+import multiprocessing
 import time
 
 from flask import Blueprint, Flask, render_template, Response, send_file
@@ -60,11 +60,14 @@ def start_streaming_server(c):
         'bind': '%s:%s' % ('localhost', '11578'),
         'certfile': '%s' % ('certificate.pem'),
         'keyfile': '%s' % ('private-key.pem'),
-        'workers': 1,
+        'workers': number_of_workers(),
     }
     StandaloneApplication(app, options).run()
 
+def number_of_workers():
+    return (multiprocessing.cpu_count() * 2) + 1
+
 if __name__ == "__main__":
-    p = Process(target = start_streaming_server, args=(None,))
+    p = multiprocessing.Process(target = start_streaming_server, args=(None,))
     p.start()
     p.join()

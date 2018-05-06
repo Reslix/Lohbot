@@ -12,13 +12,8 @@ import fasteners
 
 if __name__ == "__main__":
 
-    #We have a single instance of our serial communicator
-    ard = SerialIO()
-    ard.start()
-
     c = TrackingCameraRunner(0)
     camera = c.camera
-
     c.step_frame()
     # Start web server to stream camera image
     p = Process(target=start_streaming_server, args=(camera,))
@@ -41,19 +36,15 @@ if __name__ == "__main__":
                 center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
                 size = math.sqrt(rect[2]**2+rect[3]**2)
 
-                differential = (tcenterx - center[0]) // 3
-                distance = tsize - size
-                left = distance + differential
-                right = distance - differential
-                ard.direct(int(left), int(right))
+                print('Moving')
             else:
-                ard.stop()
+                print('Stopping')
                 im = imshow(image, im=im)
         elif command == 'stop':
-            ard.stop()
+            print('stop')
         elif command == 'openpose':
-            #TODO
+            print('Openpose')
             pass
         else:
             print('undefined command')
-
+        time.sleep(1)
