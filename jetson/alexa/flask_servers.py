@@ -1,6 +1,9 @@
 import argparse
+import datetime
+import json
 import logging
-from random import randint
+import math
+import random
 import time
 
 import fasteners
@@ -69,6 +72,30 @@ memory_game_ask = Ask(memory_game_app, "/")
 logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 
 
+# From https://stackoverflow.com/a/27058505
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
+
+
+def record_results():
+    filename = 'alexa/memory_game_results.json'
+    with open(filename, "r") as file:
+        try:
+            data = json.load(file)
+        except ValueError:
+            print("Filling in file for results")
+            data = {}
+    if not "results" in data:
+        data["results"] = []
+    results = data["results"]
+    results.append({"time": datetime.datetime.now(), "correct": 5})
+    with open(filename, 'w') as outfile:
+        json.dump(data, outfile, cls=DateTimeEncoder)
+
+
 @memory_game_ask.launch
 def new_game():
     """Starts memory game.
@@ -79,7 +106,7 @@ def new_game():
 
     words_to_say = []
 
-    with open('wordlist.json', "r") as file:
+    with open('alexa/wordlist.json', "r") as file:
         data = json.load(file)
     wordlist = data["wordlist"]
     for category in wordlist:
@@ -121,6 +148,7 @@ def next_round(user_said_yes):
         already_said = session.attributes['this_word'] in session.attributes['words_already_said']
         if (already_said and not user_said_yes) or (not already_said and user_said_yes):
             msg = render_template('lose', count=words_said_count)
+            record_results()
             return statement(msg)
         # User answered correctly; add to list of words already said
         if session.attributes['this_word'] not in session.attributes['words_already_said']:
@@ -130,6 +158,7 @@ def next_round(user_said_yes):
     # Check if we've gone through all the words
     if words_to_say_count == 0:
         msg = render_template('win', count=words_said_count)
+        record_results()
         return statement(msg)
 
     # Say next word
@@ -158,6 +187,7 @@ def stop():
 def cancel():
     words_said_count = len(session.attributes['words_already_said'])
     bye_msg = render_template('bye', count=words_said_count)
+    record_results()
     return statement(bye_msg)
 
 
