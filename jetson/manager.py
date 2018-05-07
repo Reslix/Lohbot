@@ -1,4 +1,5 @@
 from multiprocessing.managers import SyncManager
+from multiprocessing import Manager
 
 class ImageManager(SyncManager):
     """
