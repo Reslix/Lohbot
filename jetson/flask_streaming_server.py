@@ -95,6 +95,7 @@ def start_streaming_server():
         'certfile': '%s' % ('certificate.pem'),
         'keyfile': '%s' % ('private-key.pem'),
         'workers': number_of_workers(),
+        'worker-class': 'gevent',
     }
     StandaloneApplication(app, options).run()
 

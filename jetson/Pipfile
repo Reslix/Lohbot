@@ -8,5 +8,6 @@ gunicorn = "*"
 fasteners = "*"
 flask-ask = {git = "https://github.com/johnwheeler/flask-ask.git", ref = "master"}
 python-dateutil = "*"
+gevent = "*"
 
 [dev-packages]
