@@ -1,4 +1,4 @@
-from camera import FaceCameraRunner
+from camera import TrackingCameraRunner
 from serial_io import SerialIO
 
 
@@ -6,7 +6,7 @@ print("Initializing serial connection with Arduino")
 ard = SerialIO()
 ard.start()
 print("Initializing camera")
-c = FaceCameraRunner(1)
+c = TrackingCameraRunner(0)
 
 print("Tracking Ball...")
 tcenterx = 640
@@ -19,6 +19,7 @@ while True:
         distance = tradius - radius
         left = distance + differential
         right = distance - differential
+        print(left,right)
         ard.direct(int(left), int(right))
     else:
         ard.stop()

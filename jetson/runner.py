@@ -68,7 +68,7 @@ if __name__ == "__main__":
             # manager.get_dict().update([('encoded', encoded)])
             manager.get_dict().update([('state', 'stopping')])
         elif command == 'openpose':
-            #TODO
+            #TODO no more
             print('Openpose')
             manager.get_dict().update([('state', 'Openpose')])
         else:
