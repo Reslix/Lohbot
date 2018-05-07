@@ -83,6 +83,7 @@ def start_streaming_server():
     # See https://docs.python.org/3.6/library/multiprocessing.html#multiprocessing.managers.SyncManager
     try:
         manager = ImageManager(address=('', 11579), authkey=b'password')
+        ImageManager.register('get_dict')
         manager.connect()
         print("Connected to manager.")
         app.config['MANAGER'] = manager

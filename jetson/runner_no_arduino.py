@@ -20,6 +20,7 @@ if __name__ == "__main__":
 
     # Send image to manager
     manager = ImageManager(address=('', 11579), authkey=b'password')
+    ImageManager.register('get_dict')
     try:
         manager.connect()
         print("Connected to manager.")
