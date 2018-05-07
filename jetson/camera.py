@@ -47,9 +47,29 @@ class Camera:
     def get_jpg(self):
         return cv2.imencode('.jpg', self.image)[1].tostring()
 
+class NonTrackingCameraRunner():
+    def __init__(self, camera=0):
+        self.camera = Camera(camera)
+        self.camera.start()
+        self.frame = None
+        self.im = None
+
+    def close(self):
+        self.camera.release()
+        cv2.destroyAllWindows()
+
+    def step_frame(self):
+        ret, frame = self.camera.read_rgb()
+        if ret is True:
+            self.frame = frame
+
+    def track_face(self):
+        print("This camera doesn't track faces")
+        return None, None
+
 class TrackingCameraRunner():
     """
-    HAHAH FACIAL RECOGNITION IS BACK 
+    HAHAH FACIAL RECOGNITION IS BACK
     """
 
     def __init__(self, camera=0):
