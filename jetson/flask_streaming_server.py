@@ -3,9 +3,7 @@ from multiprocessing.managers import SyncManager
 import time
 
 import fasteners
-from flask import Blueprint, Flask, render_template, Response, send_file
-import gunicorn.app.base
-from gunicorn.six import iteritems
+from flask import Flask, render_template, Response, send_file
 
 
 class ImageManager(SyncManager):
@@ -73,40 +71,14 @@ def send_status():
     return output
 
 
-class StandaloneApplication(gunicorn.app.base.BaseApplication):
-    """Class for starting custom Gunicorn WSGI application"""
-    def __init__(self, app, options=None):
-        self.options = options or {}
-        self.application = app
-        super(StandaloneApplication, self).__init__()
-
-    def load_config(self):
-        config = dict([(key, value) for key, value in iteritems(self.options)
-                       if key in self.cfg.settings and value is not None])
-
-        for key, value in iteritems(config):
-            self.cfg.set(key.lower(), value)
-
-    def load(self):
-        return self.application
-
-def start_streaming_server(c):
+def start_streaming_server(manager):
     """
     :param c: SyncManager with member get_dict that is a shared Proxy Object
     See https://docs.python.org/3.6/library/multiprocessing.html#multiprocessing.managers.SyncManager
     """
-    app.config['MANAGER'] = c
+    app.config['MANAGER'] = manager
 
-    options = {
-        'bind': '%s:%s' % ('localhost', '11578'),
-        'certfile': '%s' % ('certificate.pem'),
-        'keyfile': '%s' % ('private-key.pem'),
-        'workers': number_of_workers(),
-    }
-    StandaloneApplication(app, options).run()
-
-def number_of_workers():
-    return (multiprocessing.cpu_count() * 2) + 1
+    app.run(host='0.0.0.0', port=11578, ssl_context = 'certificate.pem', 'private-key.pem')
 
 if __name__ == "__main__":
     p = multiprocessing.Process(target = start_streaming_server, args=(None,))
