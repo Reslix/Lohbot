@@ -1,0 +1,29 @@
+<html>
+    <head>
+        <title>Memory Game Results</title>
+    </head>
+    <body>
+        <h1>Memory Game Results</h1>
+        <p>Total: {{ results | length }}</p>
+        <table border="1">
+            <thead>
+                <tr>
+                    <td>Date and time</td>
+                    <td>Number correct</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dict in results %}
+                <tr>
+                    <td>{{ dict["time"] | format_datetime}}</td>
+                    <td>{{ dict["correct"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <form action="{{ url_for('clear_results') }}" method="post">
+            <button type="submit">Clear results</button>
+        </form>
+    </body>
+</html>
