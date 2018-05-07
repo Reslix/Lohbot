@@ -27,8 +27,5 @@ def track_tennis_ball(image):
         ((x, y), radius) = cv2.minEnclosingCircle(c)
         M = cv2.moments(c)
         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-        cv2.circle(image, (int(x), int(y)), int(radius),
-                   (0, 255, 255), 2)
-        cv2.circle(image, center, 5, (0, 0, 255), -1)
 
-    return center, radius, image
+    return center, radius

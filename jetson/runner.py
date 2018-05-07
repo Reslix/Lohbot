@@ -28,15 +28,13 @@ if __name__ == "__main__":
     tcenterx = 640
     tsize = 160
     while True:
+        c.step_frame()
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
             with open('ALEXA_COMMAND.txt') as file:
                 command = file.read().strip()
         if command == 'follow':
-            c.step_frame()
-            rect, image = c.track_face()
+            rect = c.track_face()
             if rect is not None:
-                cv2.rectangle(image, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 255), 2)
-                im = imshow(image, im=im)
 
                 center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
                 size = math.sqrt(rect[2]**2+rect[3]**2)

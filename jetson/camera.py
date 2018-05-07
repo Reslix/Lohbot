@@ -3,7 +3,6 @@ from threading import Thread
 import cv2
 
 from balltrack import track_tennis_ball
-from show import imshow
 
 delay = 30
 
@@ -48,47 +47,6 @@ class Camera:
     def get_jpg(self):
         return cv2.imencode('.jpg', self.image)[1].tostring()
 
-class EnetCameraRunner():
-    """
-    Segments
-    """
-    pass
-
-
-class PersonCameraRunner():
-    """
-    Identify human shaped things using
-    """
-
-    def __init__(self, camera=0):
-        self.camera = Camera(camera)
-        self.camera.start()
-        self.frame = None
-        self.im = None
-        self.detector = detector.detector
-
-    def step_frame(self):
-        ret, frame = self.camera.read_rgb()
-        if ret is True:
-            self.frame = frame
-
-    def step_imshow_frame(self):
-        rects, image = self.detector(self.frame)
-        for (x, y, w, h) in rects:
-            cv2.rectangle(image, (x, y), (w, h), (0, 255, 255), 2)
-        self.im = imshow(image, im=self.im)
-
-    def track_people(self):
-        """
-        We obtain the bounding boxes of all the people in the scene and update their positions.
-        We do this by tracking the location of the centers of their boxes and comparing them with the locations of the
-        previous frame with a small prediction.
-        We have a vector of the x and y coordinates of the old and new centers.
-        :return:
-        """
-        pass
-
-
 class TrackingCameraRunner():
     """
     Deprecated, facial recognition is not a priority atm
@@ -108,8 +66,9 @@ class TrackingCameraRunner():
 
     def track_tennis_ball(self):
         center, radius, image = track_tennis_ball(self.frame)
-        self.im = imshow(image, self.im)
-        return center, radius, image
+        cv2.circle(self.frame, (int(x), int(y)), int(radius),
+                   (0, 255, 255), 2)
+        cv2.circle(self.frame, center, 5, (0, 0, 255), -1)        return center, radius, image
 
     def step_frame(self):
 
@@ -135,7 +94,9 @@ class TrackingCameraRunner():
                 print('reinitializing')
             print('detecting')
 
-        return face, image
+        cv2.rectangle(self.frame, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
+
+        return face
 
     def detect_faces(self):
         gray = cv2.cvtColor(self.frame, cv2.COLOR_RGB2GRAY)
@@ -152,3 +113,10 @@ class TrackingCameraRunner():
                 rects.append((x, y, w, h))
 
         return rects
+
+    def open_pose(self):
+        """
+        The api for pyopenpose is completely borked
+        :return:
+        """
+        pass
