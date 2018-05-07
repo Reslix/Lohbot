@@ -11,6 +11,12 @@ from gunicorn.six import iteritems
 class ImageManager(SyncManager):
     """
     Controls access to shared dict object
+
+    get_dict() returns the Manager.dict()
+    Key     Value
+    camera  Camera object (webcam image)
+    state   status of tracker (string)
+    encoded encoded camera image with overlay (string)
     """
     pass
 
@@ -33,8 +39,11 @@ def gen(manager):
         return
     while True:
         image_dictionary = manager.get_dict()
-        if 'encoded' in image_dictionary.keys():
-            frame = image_dictionary.get('encoded')
+        # if 'encoded' in image_dictionary.keys():
+        #     frame = image_dictionary.get('encoded')
+        if 'camera' in image_dictionary.keys():
+            camera = image_dictionary.get('camera')
+            frame = camera.get_jpg()
             yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         else:
