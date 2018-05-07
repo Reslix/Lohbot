@@ -6,15 +6,16 @@ import math
 import random
 import time
 
+import dateutil.parser
 import fasteners
-
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, url_for
 from flask_ask import Ask, statement, question, session
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
 lock_file_name = 'ALEXA_COMMAND.txt.lock'
 file_name = 'ALEXA_COMMAND.txt'
+
 
 #############################################################################
 # Flask server to handle request for movement from the Alexa
@@ -58,7 +59,7 @@ def follow():
 
 # Alexa will say a word, and you (the user) respond if you've heard it before
 # or not
-# 50% chance of saying word already said before, 50% chance of saying new word
+# 1/3 chance of saying word already said before, 2/3 chance of saying new word
 
 # Flask session attributes:
 # words_to_say -- list of words to say, randomized for each session
@@ -66,6 +67,8 @@ def follow():
 # this_word -- previous word spoken
 #############################################################################
 
+
+results_file = 'alexa/memory_game_results.json'
 
 memory_game_app = Flask(__name__)
 memory_game_ask = Ask(memory_game_app, "/")
@@ -81,8 +84,7 @@ class DateTimeEncoder(json.JSONEncoder):
 
 
 def record_results():
-    filename = 'alexa/memory_game_results.json'
-    with open(filename, "r") as file:
+    with open(results_file, "r") as file:
         try:
             data = json.load(file)
         except ValueError:
@@ -91,10 +93,37 @@ def record_results():
     if not "results" in data:
         data["results"] = []
     results = data["results"]
-    results.append({"time": datetime.datetime.now(), "correct": 5})
-    with open(filename, 'w') as outfile:
+    words_said_count = len(session.attributes['words_already_said'])
+    results.append({"time": datetime.datetime.now(), "correct": words_said_count})
+    with open(results_file, 'w') as outfile:
         json.dump(data, outfile, cls=DateTimeEncoder)
 
+@memory_game_app.template_filter('format_datetime')
+def format_datetime(s):
+    """
+    :param s: string datetime in ISO format
+    """
+    return dateutil.parser.parse(s).strftime("%B %d, %Y %H:%M")
+
+@memory_game_app.route("/results")
+def show_results():
+    with open(results_file, "r") as file:
+        try:
+            data = json.load(file)
+        except ValueError:
+            print("Data file is empty")
+            data = {}
+        if not "results" in data:
+            results = []
+        else:
+            results = data["results"]
+        return render_template('memory_game_results.html', results=results)
+
+@memory_game_app.route("/clear_results", methods=['POST'])
+def clear_results():
+    with open(results_file, "w+") as file:
+        file.write("{}")
+    return redirect(url_for("show_results"))
 
 @memory_game_ask.launch
 def new_game():
@@ -162,8 +191,9 @@ def next_round(user_said_yes):
         return statement(msg)
 
     # Say next word
-    r = random.randint(0, 2) # 0 or 1
-    if r == 0 or words_said_count == 0:
+    r = random.randint(0, 2) # 0, 1, or 2
+    print(r)
+    if r != 0 or words_said_count == 0:
         # Say word not heard before
         word = session.attributes['words_to_say'].pop()
     else:
@@ -246,3 +276,4 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def number_of_workers():
     return 1
+
