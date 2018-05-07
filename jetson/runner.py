@@ -14,8 +14,8 @@ import fasteners
 if __name__ == "__main__":
 
     #We have a single instance of our serial communicator
-    ard = SerialIO()
-    ard.start()
+    #ard = SerialIO()
+    #ard.start()
 
     # Initialize camera
     c = TrackingCameraRunner(0)
@@ -39,23 +39,25 @@ if __name__ == "__main__":
     tsize = 160
     while True:
         c.step_frame()
+        im = imshow(camera.image,im=im)
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
             with open('ALEXA_COMMAND.txt') as file:
                 command = file.read().strip()
         if command == 'follow':
-            rect = c.track_face()
+            rect, faceObj = c.track_face()
+            if (len(faceObj) != 0) and (faceObj is not None):
+                print(faceObj[0].name)
             if rect is not None:
                 center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
                 size = math.sqrt(rect[2]**2+rect[3]**2)
                 differential = (tcenterx - center[0]) // 3
-                distance = tsize - size
-                left = distance + differential
-                right = distance - differential
-                ard.direct(int(left), int(right))
+                left = differential
+                right = -differential
+                #ard.direct(int(left), int(right))
 
                 manager.get_dict().update([('state', 'follow: moving')])
             else:
-                ard.stop()
+                #ard.stop()
                 manager.get_dict().update([('state', 'follow: stopping')])
 
             # Update mangager with shared image

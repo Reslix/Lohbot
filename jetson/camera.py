@@ -49,7 +49,7 @@ class Camera:
 
 class TrackingCameraRunner():
     """
-    Deprecated, facial recognition is not a priority atm
+    HAHAH FACIAL RECOGNITION IS BACK 
     """
 
     def __init__(self, camera=0):
@@ -102,8 +102,13 @@ class TrackingCameraRunner():
             print('\r detecting', end="")
         if face is not None:
             cv2.rectangle(self.camera.image, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
+            # Andrew this is the face recog thing
+            self.faces.add_face(self.frame,face)
+            self.faces.track_faces()
+        else:
+            self.faces.detected_faces = []
 
-        return face
+        return face, self.faces.detected_faces
 
     def detect_faces(self):
         gray = cv2.cvtColor(self.frame, cv2.COLOR_RGB2GRAY)

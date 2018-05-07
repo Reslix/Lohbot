@@ -33,6 +33,7 @@ if __name__ == "__main__":
     tsize = 160
     while True:
         c.step_frame()
+        im = imshow(camera.image,im=im)
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
             with open('ALEXA_COMMAND.txt') as file:
                 command = file.read().strip()

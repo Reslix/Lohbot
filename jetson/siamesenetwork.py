@@ -206,8 +206,8 @@ def test_siamese(net):
                 output1, output2 = net(Variable(x0)), net(Variable(x1))
 
             euclidean_distance = F.pairwise_distance(output1, output2)
-            imshow(np.transpose(torchvision.utils.make_grid(concatenated).numpy(), (1, 2, 0)),
-                   'Dissimilarity: {:.2f}'.format(euclidean_distance.cpu().data.numpy()[0][0]))
+            imshow(np.transpose(torchvision.utils.make_grid(concatenated).numpy(), (1, 2, 0)))
+            print('Dissimilarity: {:.2f}'.format(euclidean_distance.cpu().data.numpy()[0][0]))
             time.sleep(.5)
             plt.close()
 
