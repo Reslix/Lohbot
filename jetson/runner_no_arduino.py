@@ -5,7 +5,7 @@ from multiprocessing import Manager, Process
 from serial_io import SerialIO
 from camera import TrackingCameraRunner
 from flask_streaming_server import start_streaming_server
-from flask_streaming_server import ImageManager
+from manager import ImageManager
 from show import imshow
 import cv2
 import fasteners
@@ -18,16 +18,14 @@ if __name__ == "__main__":
     camera = c.camera
     c.step_frame()
 
-    # Shared Manager object
-    image_dictionary = Manager().dict()
-    ImageManager.register('get_dict', callable=lambda:image_dictionary)
-    manager = ImageManager()
-    manager.start()
-    manager.get_dict().update([('camera', camera)])
-
-    # Start web server to stream camera image
-    p = Process(target=start_streaming_server, args=(manager,))
-    p.start()
+    # Send image to manager
+    manager = ImageManager(address=('', 11579), authkey=b'password')
+    try:
+        manager.connect()
+        print("Connected to manager.")
+        manager.get_dict().update([('camera', camera)])
+    except ConnectionRefusedError:
+        print("No connection to  manager.")
 
     im = None
     tcenterx = 640

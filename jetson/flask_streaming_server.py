@@ -1,5 +1,4 @@
 import multiprocessing
-from multiprocessing.managers import SyncManager
 import time
 
 import fasteners
@@ -7,18 +6,7 @@ from flask import Blueprint, Flask, render_template, Response, send_file
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-
-class ImageManager(SyncManager):
-    """
-    Controls access to shared dict object
-
-    get_dict() returns the Manager.dict()
-    Key     Value
-    camera  Camera object (webcam image)
-    state   status of tracker (string)
-    encoded encoded camera image with overlay (string)
-    """
-    pass
+from manager import ImageManager
 
 
 """
@@ -90,12 +78,17 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def load(self):
         return self.application
 
-def start_streaming_server(c):
-    """
-    :param c: SyncManager with member get_dict that is a shared Proxy Object
-    See https://docs.python.org/3.6/library/multiprocessing.html#multiprocessing.managers.SyncManager
-    """
-    app.config['MANAGER'] = c
+def start_streaming_server():
+    # SyncManager with member get_dict that is a shared Proxy Object
+    # See https://docs.python.org/3.6/library/multiprocessing.html#multiprocessing.managers.SyncManager
+    try:
+        manager = ImageManager(address=('', 11579), authkey=b'password')
+        manager.connect()
+        print("Connected to manager.")
+        app.config['MANAGER'] = manager
+    except ConnectionRefusedError:
+        print("No connection to  manager.")
+
 
     options = {
         'bind': '%s:%s' % ('localhost', '11578'),
@@ -109,6 +102,6 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 if __name__ == "__main__":
-    p = multiprocessing.Process(target = start_streaming_server, args=(None,))
+    p = multiprocessing.Process(target = start_streaming_server)
     p.start()
     p.join()
