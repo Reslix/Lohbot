@@ -20,7 +20,7 @@ from show import imshow, show_plot
 class SiameseConfig():
     training_dir = "./data/siamesetraining/"
     testing_dir = "./data/siamesetesting/"
-    model_path = "./models/siamese.torch"
+    model_path = "./models/siamese.torch.old"
     vec_path = "./data/kookynsa.txt"
     train_batch_size = 64
     train_number_epochs = 100

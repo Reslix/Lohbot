@@ -8,21 +8,20 @@ from balltrack import track_tennis_ball
 
 delay = 30
 
-face_cascade = cv2.CascadeClassifier('cascades_cuda/haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('cascades_cuda/haarcascade_eye.xml')
+face_cascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
 
 
 class Camera:
-    def __init__(self, id=0, height=720, width=1280, fps=30):
+    def __init__(self, id=0, height=1080, width=1920, fps=30):
         self.cap = cv2.VideoCapture(id)
-        time.sleep(3)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.cap.set(cv2.CAP_PROP_FPS, fps)
+        w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        print(w,h)
         self.success, self.image = self.cap.read()
         self.stopped = False
-        # self.calib = pickle.load('calibration.pickle')
-        # self.newcameramtx, self.roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(width,height),1,(width,height))
 
     def update(self):
         while True:
@@ -30,13 +29,13 @@ class Camera:
                 return
 
             self.success, image = self.cap.read()
-            self.image = image
+            self.image = image[180:900, 320:1600]
 
     def start(self):
         Thread(target=self.update, args=()).start()
 
     def read_rgb(self):
-        image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        image = self.image#cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         return self.success, image
 
     def undistort(self, image):
@@ -83,7 +82,7 @@ class TrackingCameraRunner():
         self.camera = Camera(camera)
         self.camera.start()
         self.frame = None
-        self.faces = Faces()
+        #self.faces = Faces()
         self.im = None
 
     def close(self):
@@ -109,9 +108,8 @@ class TrackingCameraRunner():
             self.frame = frame
 
     def track_face(self):
-        image = self.frame.copy()
         if self.tracking:
-            tracking, face = self.tracker.update(image)
+            tracking, face = self.tracker.update(self.frame)
             face = [int(i) for i in face]
             self.tracking = tracking
             print('\r tracking',end="")
@@ -121,19 +119,19 @@ class TrackingCameraRunner():
             face = rects[0] if len(rects) else None
             if face is not None:
                 self.tracker = cv2.TrackerKCF_create()
-                self.tracker.init(image, face)
+                self.tracker.init(self.frame, face)
                 self.tracking = True
                 print('\r reinitializing',end="")
             print('\r detecting', end="")
         if face is not None:
             cv2.rectangle(self.frame, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
             # Andrew this is the face recog thing
-            self.faces.add_face(self.frame,face)
-            self.faces.track_faces()
-        else:
-            self.faces.detected_faces = []
+            # self.faces.add_face(self.frame,face)
+            # self.faces.track_faces()
+        #else:
+            # self.faces.detected_faces = []
 
-        return face, self.faces.detected_faces
+        return face, []#self.faces.detected_faces
 
     def detect_faces(self):
         gray = cv2.cvtColor(self.frame, cv2.COLOR_RGB2GRAY)
@@ -148,7 +146,6 @@ class TrackingCameraRunner():
             eyes = eye_cascade.detectMultiScale(gray[y:y + h, x:x + w])
             if eyes is not None and len(eyes) > 0:
                 rects.append((x, y, w, h))
-
         return rects
 
     def get_jpg(self):
