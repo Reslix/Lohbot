@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math, time
+from datetime import datetime
 from multiprocessing import Manager, Process
 
 from serial_io import SerialIO
@@ -37,7 +38,13 @@ if __name__ == "__main__":
     im = None
     tcenterx = 640
     tsize = 160
+
+    prevtime = datetime.now()
     while True:
+        newtime = datetime.now()
+        difference = newtime-prevtime
+        print("%d %d", difference.seconds, difference.microseconds)
+        prevtime = newtime
         c.step_frame()
         # im = imshow(camera.image,im=im)
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
@@ -55,10 +62,10 @@ if __name__ == "__main__":
                 size = math.sqrt(rect[2]**2+rect[3]**2)
                 differential = (tcenterx - center[0]) // 3
                 left = differential
-                left = max(-50, min(50, left))
+                left = max(-30, min(30, left))
                 right = -left
                 print('({}, {})'.format(left, right))
-                ard.direct(int(left), int(right))
+                ard.direct(int(right), int(left))
 
                 manager.get_dict().update([('state', 'follow - moving')])
             else:
@@ -66,13 +73,13 @@ if __name__ == "__main__":
                 manager.get_dict().update([('state', 'follow - stopping')])
 
             # Update mangager with shared image
-            encoded = c.get_jpg()
-            manager.get_dict().update([('encoded', encoded)])
+            #encoded = c.get_jpg()
+            #manager.get_dict().update([('encoded', encoded)])
         elif command == 'stop':
             ard.stop()
             print('stop')
-            encoded = c.get_jpg()
-            manager.get_dict().update([('encoded', encoded)])
+            #encoded = c.get_jpg()
+            #manager.get_dict().update([('encoded', encoded)])
             manager.get_dict().update([('state', 'stopping')])
             manager.get_dict().pop('name', None)
         elif command == 'openpose':
