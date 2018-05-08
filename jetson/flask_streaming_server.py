@@ -46,7 +46,7 @@ def video_feed():
 
 @bp.route('/status')
 def send_status():
-    output = "Alexa command:<br> "
+    output = "Alexa command: "
     with fasteners.InterProcessLock(lock_file_name):
         with open(file_name, "r") as file:
             output = output + file.read().replace('\n', '')
@@ -57,7 +57,7 @@ def send_status():
     image_dictionary = manager.get_dict()
     if 'state' in image_dictionary.keys():
         state = image_dictionary.get('state')
-        output = output + "<br> Tracker state:<br> " + state
+        output = output + "<br> Tracker state: " + state
 
     return output
 

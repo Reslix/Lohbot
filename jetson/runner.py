@@ -55,10 +55,10 @@ if __name__ == "__main__":
                 right = -differential
                 #ard.direct(int(left), int(right))
 
-                manager.get_dict().update([('state', 'follow: moving')])
+                manager.get_dict().update([('state', 'follow - moving')])
             else:
                 #ard.stop()
-                manager.get_dict().update([('state', 'follow: stopping')])
+                manager.get_dict().update([('state', 'follow - stopping')])
 
             # Update mangager with shared image
             encoded = camera.get_jpg()
