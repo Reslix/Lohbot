@@ -150,4 +150,4 @@ class TrackingCameraRunner():
         return rects
 
     def get_jpg(self):
-        return cv2.imencode('.jpg', self.frame)[1].tostring()
+        return cv2.imencode('.jpg', cv2.cvtColor(self.frame, cv2.COLOR_RGB2BGR))[1].tostring()
