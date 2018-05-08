@@ -47,6 +47,9 @@ if __name__ == "__main__":
             rect, faceObj = c.track_face()
             if (faceObj is not None) and (len(faceObj) != 0):
                 print(faceObj[0].name)
+                manager.get_dict().update([('name', faceObj[0].name)])
+            else:
+                manager.get_dict().pop('name', None)
             if rect is not None:
                 center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
                 size = math.sqrt(rect[2]**2+rect[3]**2)
@@ -69,6 +72,7 @@ if __name__ == "__main__":
             encoded = c.get_jpg()
             manager.get_dict().update([('encoded', encoded)])
             manager.get_dict().update([('state', 'stopping')])
+            manager.get_dict().pop('name', None)
         elif command == 'openpose':
             #TODO no more
             print('Openpose')

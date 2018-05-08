@@ -58,6 +58,9 @@ def send_status():
     if 'state' in image_dictionary.keys():
         state = image_dictionary.get('state')
         output = output + "<br> Tracker state: " + state
+    if 'name' in image_dictionary.keys():
+        name = image_dictionary.get('name')
+        output = output + "; " + name
 
     return output
 
