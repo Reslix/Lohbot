@@ -1,6 +1,7 @@
 from threading import Thread
 
 import cv2
+import time
 from facial import Faces
 
 from balltrack import track_tennis_ball
@@ -14,6 +15,7 @@ eye_cascade = cv2.CascadeClassifier('cascades_cuda/haarcascade_eye.xml')
 class Camera:
     def __init__(self, id=0, height=720, width=1280, fps=30):
         self.cap = cv2.VideoCapture(id)
+        time.sleep(3)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.cap.set(cv2.CAP_PROP_FPS, fps)
