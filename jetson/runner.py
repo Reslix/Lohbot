@@ -3,9 +3,9 @@ import math, time
 from multiprocessing import Manager, Process
 
 from serial_io import SerialIO
-from camera import TrackingCameraRunner
+from camera import NonTrackingCameraRunner, TrackingCameraRunner
 from flask_streaming_server import start_streaming_server
-from flask_streaming_server import ImageManager
+from manager import ImageManager
 from show import imshow
 import cv2
 import fasteners
@@ -19,33 +19,33 @@ if __name__ == "__main__":
 
     # Initialize camera
     c = TrackingCameraRunner(0)
+    # c = NonTrackingCameraRunner(0)
     camera = c.camera
 
     c.step_frame()
 
-    # Shared Manager object
-    image_dictionary = Manager().dict()
-    ImageManager.register('get_dict', callable=lambda:image_dictionary)
-    manager = ImageManager()
-    manager.start()
-    manager.get_dict().update([('camera', camera)])
-
-    # Start web server to stream camera image
-    p = Process(target=start_streaming_server, args=(manager,))
-    p.start()
+    # Send image to manager
+    manager = ImageManager(address=('', 11579), authkey=b'password')
+    ImageManager.register('get_dict')
+    try:
+        manager.connect()
+        print("Connected to manager.")
+        manager.get_dict().update([('camera', camera)])
+    except ConnectionRefusedError:
+        print("No connection to manager.")
 
     im = None
     tcenterx = 640
     tsize = 160
     while True:
         c.step_frame()
-        im = imshow(camera.image,im=im)
+        # im = imshow(camera.image,im=im)
         with fasteners.InterProcessLock('ALEXA_COMMAND.txt.lock'):
             with open('ALEXA_COMMAND.txt') as file:
                 command = file.read().strip()
         if command == 'follow':
             rect, faceObj = c.track_face()
-            if (len(faceObj) != 0) and (faceObj is not None):
+            if (faceObj is not None) and (len(faceObj) != 0):
                 print(faceObj[0].name)
             if rect is not None:
                 center = (rect[0]+rect[2]//2, rect[1]+rect[3]//2)
@@ -61,13 +61,13 @@ if __name__ == "__main__":
                 manager.get_dict().update([('state', 'follow: stopping')])
 
             # Update mangager with shared image
-            # encoded = cv2.imencode('.jpg', image)[1].tostring()
-            # manager.get_dict().update([('encoded', encoded)])
+            encoded = camera.get_jpg()
+            manager.get_dict().update([('encoded', encoded)])
         elif command == 'stop':
             ard.stop()
             print('stop')
-            # encoded = camera.get_jpg()
-            # manager.get_dict().update([('encoded', encoded)])
+            encoded = camera.get_jpg()
+            manager.get_dict().update([('encoded', encoded)])
             manager.get_dict().update([('state', 'stopping')])
         elif command == 'openpose':
             #TODO no more

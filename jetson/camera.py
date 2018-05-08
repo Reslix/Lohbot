@@ -64,7 +64,6 @@ class NonTrackingCameraRunner():
             self.frame = frame
 
     def track_face(self):
-        print("This camera doesn't track faces")
         return None, None
 
 class TrackingCameraRunner():

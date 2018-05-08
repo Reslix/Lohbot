@@ -14,11 +14,12 @@ Starts a Flask server to listen to streaming requests
 """
 
 app = Flask(__name__)
+bp = Blueprint('monitor', __name__, template_folder='templates')
 
 lock_file_name = 'ALEXA_COMMAND.txt.lock'
 file_name = 'ALEXA_COMMAND.txt'
 
-@app.route('/')
+@bp.route('/')
 def index():
     return render_template('index.html')
 
@@ -27,23 +28,23 @@ def gen(manager):
         return
     while True:
         image_dictionary = manager.get_dict()
-        # if 'encoded' in image_dictionary.keys():
-        #     frame = image_dictionary.get('encoded')
-        if 'camera' in image_dictionary.keys():
-            camera = image_dictionary.get('camera')
-            frame = camera.get_jpg()
+        if 'encoded' in image_dictionary.keys():
+            frame = image_dictionary.get('encoded')
+        # if 'camera' in image_dictionary.keys():
+        #     camera = image_dictionary.get('camera')
+        #     frame = camera.get_jpg()
             yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         else:
             yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + b'\0' + b'\r\n')
 
-@app.route('/video_feed')
+@bp.route('/video_feed')
 def video_feed():
     return Response(gen(app.config['MANAGER']),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/status')
+@bp.route('/status')
 def send_status():
     output = "Alexa command:<br> "
     with fasteners.InterProcessLock(lock_file_name):
@@ -88,9 +89,10 @@ def start_streaming_server():
         print("Connected to manager.")
         app.config['MANAGER'] = manager
     except ConnectionRefusedError:
-        print("No connection to  manager.")
+        print("No connection to manager.")
+        app.config['MANAGER'] = None
 
-
+    """
     options = {
         'bind': '%s:%s' % ('localhost', '11578'),
         'certfile': '%s' % ('certificate.pem'),
@@ -99,6 +101,9 @@ def start_streaming_server():
         'worker-class': 'gevent',
     }
     StandaloneApplication(app, options).run()
+    """
+    app.register_blueprint(bp, url_prefix='/monitor')
+    app.run('0.0.0.0', 11578, True, ssl_context=('certificate.pem', 'private-key.pem'))
 
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
