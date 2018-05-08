@@ -4,7 +4,7 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
     </head>
     <body>
-        <div class="container">
+        <div class="container-fluid">
             <div class="row d-flex align-items-center">
                 <div class="col-auto mr-auto"><h1>Video Streaming Demonstration</h1></div>
                 <div class="col-auto pr-0"><b>Status</b></div>
@@ -13,7 +13,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row text-center">
                 <div class="col">
                     <img src="{{ url_for('monitor.video_feed') }}">
                 </div>
