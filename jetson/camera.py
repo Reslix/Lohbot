@@ -35,7 +35,7 @@ class Camera:
         Thread(target=self.update, args=()).start()
 
     def read_rgb(self):
-        image = self.image#cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         return self.success, image
 
     def undistort(self, image):
@@ -97,9 +97,10 @@ class TrackingCameraRunner():
 
     def track_tennis_ball(self):
         center, radius, image = track_tennis_ball(self.frame)
-        cv2.circle(self.frame, (int(x), int(y)), int(radius),
+        if center is not None:
+            cv2.circle(self.frame, (int(center[0]), int(center[1])), int(radius),
                    (0, 255, 255), 2)
-        cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
+            cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
         return center, radius, image
 
     def step_frame(self):
