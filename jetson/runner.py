@@ -61,12 +61,12 @@ if __name__ == "__main__":
                 manager.get_dict().update([('state', 'follow - stopping')])
 
             # Update mangager with shared image
-            encoded = camera.get_jpg()
+            encoded = c.get_jpg()
             manager.get_dict().update([('encoded', encoded)])
         elif command == 'stop':
             ard.stop()
             print('stop')
-            encoded = camera.get_jpg()
+            encoded = c.get_jpg()
             manager.get_dict().update([('encoded', encoded)])
             manager.get_dict().update([('state', 'stopping')])
         elif command == 'openpose':

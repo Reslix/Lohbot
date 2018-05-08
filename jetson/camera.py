@@ -66,6 +66,10 @@ class NonTrackingCameraRunner():
     def track_face(self):
         return None, None
 
+    def get_jpg(self):
+        return cv2.imencode('.jpg', self.frame)[1].tostring()
+
+
 class TrackingCameraRunner():
     """
     HAHAH FACIAL RECOGNITION IS BACK
@@ -92,9 +96,9 @@ class TrackingCameraRunner():
 
     def track_tennis_ball(self):
         center, radius, image = track_tennis_ball(self.frame)
-        cv2.circle(self.camera.image, (int(x), int(y)), int(radius),
+        cv2.circle(self.frame, (int(x), int(y)), int(radius),
                    (0, 255, 255), 2)
-        cv2.circle(self.camera.image, center, 5, (0, 0, 255), -1)
+        cv2.circle(self.frame, center, 5, (0, 0, 255), -1)
         return center, radius, image
 
     def step_frame(self):
@@ -120,7 +124,7 @@ class TrackingCameraRunner():
                 print('\r reinitializing',end="")
             print('\r detecting', end="")
         if face is not None:
-            cv2.rectangle(self.camera.image, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
+            cv2.rectangle(self.frame, (face[0], face[1]), (face[0] + face[2], face[1] + face[3]), (0, 255, 255), 2)
             # Andrew this is the face recog thing
             self.faces.add_face(self.frame,face)
             self.faces.track_faces()
@@ -145,9 +149,5 @@ class TrackingCameraRunner():
 
         return rects
 
-    def open_pose(self):
-        """
-        The api for pyopenpose is completely borked
-        :return:
-        """
-        pass
+    def get_jpg(self):
+        return cv2.imencode('.jpg', self.frame)[1].tostring()
