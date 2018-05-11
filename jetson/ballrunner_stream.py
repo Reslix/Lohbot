@@ -1,6 +1,7 @@
 from camera import TrackingCameraRunner
 from serial_io import SerialIO
 from show import imshow
+from manager import ImageManager
 from flask_streaming_server import start_streaming_server
 
 print("Initializing serial connection with Arduino")
@@ -15,13 +16,13 @@ ImageManager.register('get_dict')
 try:
     manager.connect()
     print("Connected to manager.")
-    manager.get_dict().update([('camera', camera)])
+    #manager.get_dict().update([('camera', camera)])
 except ConnectionRefusedError:
     print("No connection to manager.")
 
 print("Tracking Ball...")
 tcenterx = 640
-tradius = 30
+tradius = 50
 im = None
 while True:
     c.step_frame()
@@ -29,7 +30,7 @@ while True:
     #im = imshow(image, im=im)
     if center:
         differential = (tcenterx - center[0])//3
-        distance = tradius - radius
+        distance =3* (tradius - radius)
         left = distance + differential
         left = max(-30, min(30, left))
         right = distance - differential
@@ -42,4 +43,6 @@ while True:
     else:
         ard.stop()
         print("stop")
+        encoded = c.get_jpg()
+        manager.get_dict().update([('encoded', encoded)])
         manager.get_dict().update([('state', 'follow - stopping')])

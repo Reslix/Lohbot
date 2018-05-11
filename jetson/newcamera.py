@@ -8,7 +8,7 @@ delay = 30
 
 
 class Camera:
-    def __init__(self, id=0, height=720, width=1280, fps=30):
+    def __init__(self, id=0, height=1080, width=1920, fps=30):
         self.cap = cv2.VideoCapture(id)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -24,7 +24,7 @@ class Camera:
                 return
 
             self.success, image = self.cap.read()
-            self.image = image#[180:900, 320:1600]
+            self.image = image[180:900, 320:1600]
 
     def start(self):
         Thread(target=self.update, args=()).start()
@@ -48,12 +48,15 @@ class TrackingCameraRunner():
         self.tracking = False
         self.camera = Camera(camera)
         self.camera.start()
+        self.frames = []
         self.frame = None
         #self.faces = Faces()
         self.im = None
 
     def close(self):
         self.camera.release()
+        for i,frame in enumerate(self.frames):
+            cv2.imwrite("frame{}.jpg".format(i), cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         cv2.destroyAllWindows()
 
 
@@ -66,6 +69,8 @@ class TrackingCameraRunner():
         return center, radius
 
     def step_frame(self):
+        if self.frame is not None:
+            self.frames = self.frames +  [self.frame]
         ret, frame = self.camera.read_rgb()
         if ret is True:
             self.frame = frame

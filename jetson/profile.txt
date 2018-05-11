@@ -1,0 +1,4 @@
+[ INFO:0] Initialize OpenCL runtime...
+1920.0 1080.0
+Connected to manager.
+ detecting detecting detecting detecting detecting reinitializing detecting tracking tracking tracking tracking tracking detecting detecting detecting detecting

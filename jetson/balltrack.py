@@ -28,4 +28,4 @@ def track_tennis_ball(image):
         M = cv2.moments(c)
         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-    return center, radius, image
+    return center, radius 

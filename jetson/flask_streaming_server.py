@@ -28,8 +28,9 @@ def gen(manager):
         return
     while True:
         image_dictionary = manager.get_dict()
+        frame = None
         if 'encoded' in image_dictionary.keys():
-           frame = image_dictionary.get('encoded')
+            frame = image_dictionary.get('encoded')
         # if 'camera' in image_dictionary.keys():
         #     camera = image_dictionary.get('camera')
         #     frame = camera.get_jpg()
@@ -50,7 +51,7 @@ def send_status():
     # with fasteners.InterProcessLock(lock_file_name):
     #     with open(file_name, "r") as file:
     #         output = output + file.read().replace('\n', '')
-    output = None
+    output = ""
     manager = app.config['MANAGER']
     if manager == None:
         return output
