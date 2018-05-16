@@ -47,11 +47,11 @@ def video_feed():
 
 @bp.route('/status')
 def send_status():
+    # output = "Alexa command: "
+    # with fasteners.InterProcessLock(lock_file_name):
+    #     with open(file_name, "r") as file:
+    #         output = output + file.read().replace('\n', '')
     output = ""
-    output = "Alexa command: "
-    with fasteners.InterProcessLock(lock_file_name):
-        with open(file_name, "r") as file:
-            output = output + file.read().replace('\n', '')
     manager = app.config['MANAGER']
     if manager == None:
         return output
@@ -59,7 +59,7 @@ def send_status():
     image_dictionary = manager.get_dict()
     if 'state' in image_dictionary.keys():
         state = image_dictionary.get('state')
-        output = output + "<br>Tracker state: " + state
+        output = output + "Tracker state:<br> " + state
     if 'name' in image_dictionary.keys():
         name = image_dictionary.get('name')
         output = output + "; " + name

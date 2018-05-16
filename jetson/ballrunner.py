@@ -47,11 +47,17 @@ try:
             print('deriv: {}'.format(deriv))
             last = (angle, cv2.getTickCount())
             differential = differential + 0.01 * deriv
-            translate = (distance - 30)/4
-            left = translate + differential
-            left = max(-speed, min(speed, left))
-            right = translate - differential
-            right = max(-speed, min(speed, right))*1.2
+            translate = (distance - 30)/6
+            left =  + differential
+            right = - differential
+            if angle > 0:
+                left = max(-speed, min(speed, left))
+                right = max(-speed, min(speed, right))
+            else:
+                left = max(-speed, min(speed, left))*3
+                right = max(-speed, min(speed, right))*3
+            left += translate
+            right += translate
             print(left,right)
             ard.direct(int(right), int(left))
         else:

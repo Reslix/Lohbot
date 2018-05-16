@@ -4,9 +4,9 @@ from show import imshow
 from manager import ImageManager
 from flask_streaming_server import start_streaming_server
 
-print("Initializing serial connection with Arduino")
-ard = SerialIO()
-ard.start()
+# print("Initializing serial connection with Arduino")
+# ard = SerialIO()
+# ard.start()
 print("Initializing camera")
 c = TrackingCameraRunner(0)
 
@@ -26,7 +26,7 @@ tradius = 50
 im = None
 while True:
     c.step_frame()
-    center, radius, image = c.track_tennis_ball()
+    center, radius = c.track_tennis_ball()
     #im = imshow(image, im=im)
     if center:
         differential = (tcenterx - center[0])//3
@@ -36,12 +36,12 @@ while True:
         right = distance - differential
         right = max(-30, min(30, right))
         print(left,right)
-        ard.direct(int(right), int(left))
+        # ard.direct(int(right), int(left))
         encoded = c.get_jpg()
         manager.get_dict().update([('encoded', encoded)])
-        manager.get_dict().update([('state', 'follow - moving')])
+        manager.get_dict().update([('state', '('+str(left)+', '+str(right)+')')])
     else:
-        ard.stop()
+        # ard.stop()
         print("stop")
         encoded = c.get_jpg()
         manager.get_dict().update([('encoded', encoded)])
